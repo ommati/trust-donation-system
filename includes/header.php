@@ -14,7 +14,7 @@ require_once __DIR__ . '/auth.php';
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Trust Donation</a>
+        <a class="navbar-brand" href="dashboard.php"><?php echo escape(TRUST_NAME); ?></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -30,6 +30,8 @@ require_once __DIR__ . '/auth.php';
                 <?php if (isLoggedIn()): ?>
                     <li class="nav-item"><span class="navbar-text text-white me-3">Welcome, <?php echo escape($_SESSION['fullname'] ?? $_SESSION['username']); ?></span></li>
                     <li class="nav-item"><a class="btn btn-outline-light btn-sm" href="logout.php">Logout</a></li>
+                <?php else: ?>
+                    <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
                 <?php endif; ?>
             </ul>
         </div>

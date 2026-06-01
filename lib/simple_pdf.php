@@ -62,7 +62,7 @@ class SimplePDF
         foreach ($this->pages as $pageIndex => $pageContents) {
             $data = implode("\n", $pageContents);
             $contentRefs[$pageIndex] = count($objects);
-            $objects[] = sprintf('<< /Length %d >>\nstream\n%s\nendstream', strlen($data), $data);
+            $objects[] = sprintf('<< /Length %d >>\r\nstream\r\n%s\r\nendstream', strlen($data), $data);
         }
 
         $fontRef = count($objects);
@@ -89,22 +89,22 @@ class SimplePDF
         $catalogRef = count($objects);
         $objects[] = sprintf('<< /Type /Catalog /Pages %d 0 R >>', $pagesRef);
 
-        $pdf = "%PDF-1.4\n%âãÏÓ\n";
+        $pdf = "%PDF-1.4\r\n%âãÏÓ\r\n";
         $offsets = [];
         foreach ($objects as $index => $object) {
             if ($index === 0) {
                 continue;
             }
             $offsets[$index] = strlen($pdf);
-            $pdf .= sprintf('%d 0 obj\n%s\nendobj\n', $index, $object);
+            $pdf .= sprintf('%d 0 obj\r\n%s\r\nendobj\r\n', $index, $object);
         }
 
         $xrefPos = strlen($pdf);
-        $pdf .= 'xref\n0 ' . count($objects) . '\n0000000000 65535 f \n';
+        $pdf .= 'xref\r\n0 ' . count($objects) . '\r\n0000000000 65535 f \r\n';
         foreach ($offsets as $offset) {
-            $pdf .= sprintf('%010d 00000 n \n', $offset);
+            $pdf .= sprintf('%010d 00000 n \r\n', $offset);
         }
-        $pdf .= sprintf('trailer<< /Size %d /Root %d 0 R >>\nstartxref\n%d\n%%EOF', count($objects), $catalogRef, $xrefPos);
+        $pdf .= sprintf('trailer<< /Size %d /Root %d 0 R >>\r\nstartxref\r\n%d\r\n%%EOF', count($objects), $catalogRef, $xrefPos);
 
         return $pdf;
     }

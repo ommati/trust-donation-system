@@ -63,15 +63,23 @@ require_once __DIR__ . '/includes/header.php';
                     <p><?php echo nl2br(escape($donation['remarks'])); ?></p>
                 </div>
             </div>
-            <div class="mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                <div>
-                    <p class="mb-1 small text-muted">Authorized Signatory</p>
-                    <div class="border-top pt-2">&nbsp;</div>
+            <div class="mt-5 pt-3 border-top">
+                <div class="row justify-content-end">
+                    <div class="col-md-6 col-lg-4 text-end">
+                        <p class="mb-2 small text-muted">Authorized Signatory</p>
+                        <?php 
+                        $sigPath = __DIR__ . '/' . TRUST_SIGNATURE;
+                        if (file_exists($sigPath)) {
+                            echo '<img src="' . escape(TRUST_SIGNATURE) . '" alt="Signature" style="max-width: 150px; max-height: 60px; margin: 5px 0;" class="d-block ms-auto">';
+                        }
+                        ?>
+                        <div class="border-top pt-2 mt-2"><?php echo escape(AUTHORIZED_SIGNATORY); ?></div>
+                    </div>
                 </div>
-                <div class="text-end">
-                    <a class="btn btn-outline-secondary me-2" href="download-pdf.php?id=<?php echo $donation['id']; ?>">Download PDF</a>
-                    <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
-                </div>
+            </div>
+            <div class="mt-4 d-flex gap-2 justify-content-center">
+                <a class="btn btn-outline-secondary" href="download-pdf.php?id=<?php echo $donation['id']; ?>">Download PDF</a>
+                <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
             </div>
         </div>
     </div>

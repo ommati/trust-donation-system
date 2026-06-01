@@ -1,0 +1,16 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/public_html/trust-donation-system/
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R assets $DEPLOYPATH
+    - /bin/cp -R images $DEPLOYPATH
+    - /bin/cp -R includes $DEPLOYPATH
+    - /bin/cp -R lib $DEPLOYPATH
+    - /bin/cp -f .htaccess $DEPLOYPATH
+    - /bin/cp -f *.php $DEPLOYPATH
+    - /bin/cp -f composer.json $DEPLOYPATH
+    - /bin/cp -f composer.lock $DEPLOYPATH
+    - /bin/cp -f database.sql $DEPLOYPATH
+    - /bin/rm -f $DEPLOYPATH/register.php
+    - if command -v composer >/dev/null 2>&1; then cd $DEPLOYPATH && composer install --no-dev --prefer-dist --optimize-autoloader; fi

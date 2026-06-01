@@ -1,0 +1,37 @@
+# Node, Editor, OS
+node_modules/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env.php
+.env.local.php
+
+# Logs
+logs/
+*.log
+
+# Composer / vendor
+vendor/
+composer.phar
+
+# Sensitive images
+images/signature*.png
+
+# Build outputs
+dist/
+
+# Ignore environment files and local secrets
+.env.php
+.env.local.php
+
+# Ignore generated PDFs and artifacts
+*.pdf
+diagnose_pdf.php
+test_pdf_check.php
+IMPLEMENTATION_COMPLETE.md
+
+# Ignore database dump if created locally
+*.sql
+!database.sql

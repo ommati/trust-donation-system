@@ -1,0 +1,7 @@
+<Files ".env.php">
+  Require all denied
+</Files>
+
+<FilesMatch "^(composer\.(json|lock)|composer\.phar|database\.sql)$">
+  Require all denied
+</FilesMatch>
