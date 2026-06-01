@@ -1,5 +1,5 @@
 <?php
-// auth.php - Phone OTP authentication helpers
+// auth.php - Firebase phone authentication helpers
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/functions.php';
 
@@ -55,11 +55,8 @@ function ensureAuthSchema()
         'phone' => "ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL AFTER username",
         'is_phone_verified' => "ALTER TABLE users ADD COLUMN is_phone_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER fullname",
         'status' => "ALTER TABLE users ADD COLUMN status ENUM('active','disabled') NOT NULL DEFAULT 'active' AFTER is_phone_verified",
-        'login_otp_hash' => "ALTER TABLE users ADD COLUMN login_otp_hash VARCHAR(255) NULL AFTER status",
-        'login_otp_expires_at' => "ALTER TABLE users ADD COLUMN login_otp_expires_at DATETIME NULL AFTER login_otp_hash",
-        'login_otp_attempts' => "ALTER TABLE users ADD COLUMN login_otp_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER login_otp_expires_at",
-        'login_otp_last_sent_at' => "ALTER TABLE users ADD COLUMN login_otp_last_sent_at DATETIME NULL AFTER login_otp_attempts",
-        'last_login_at' => "ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL AFTER login_otp_last_sent_at",
+        'firebase_uid' => "ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128) NULL AFTER status",
+        'last_login_at' => "ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL AFTER firebase_uid",
     ];
 
     foreach ($columns as $column => $sql) {
@@ -100,7 +97,7 @@ function authFindUserByPhone($phone)
     return $user;
 }
 
-function authCreateAllowedPhoneUser($phone)
+function authCreateAllowedPhoneUser($phone, $firebaseUid = null)
 {
     global $pdo;
     ensureAuthSchema();
@@ -108,144 +105,102 @@ function authCreateAllowedPhoneUser($phone)
     $phone = normalizePhone($phone);
     $existing = authFindUserByPhone($phone);
     if ($existing) {
+        if ($firebaseUid && ($existing['firebase_uid'] ?? '') !== $firebaseUid) {
+            $stmt = $pdo->prepare('UPDATE users SET firebase_uid = :firebase_uid, is_phone_verified = 1 WHERE id = :id');
+            $stmt->execute(['firebase_uid' => $firebaseUid, 'id' => $existing['id']]);
+            $existing['firebase_uid'] = $firebaseUid;
+            $existing['is_phone_verified'] = 1;
+        }
         return $existing;
     }
 
     $randomPassword = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("INSERT INTO users (username, phone, password, fullname, is_phone_verified, status) VALUES (:username, :phone, :password, :fullname, 1, 'active')");
+    $stmt = $pdo->prepare("INSERT INTO users (username, phone, password, fullname, is_phone_verified, status, firebase_uid) VALUES (:username, :phone, :password, :fullname, 1, 'active', :firebase_uid)");
     $stmt->execute([
         'username' => $phone,
         'phone' => $phone,
         'password' => $randomPassword,
         'fullname' => 'Authorized User',
+        'firebase_uid' => $firebaseUid,
     ]);
 
     return authFindUserByPhone($phone);
 }
 
-function authCanSendOtp($user)
+function firebaseLookupIdToken($idToken)
 {
-    if (empty($user['login_otp_last_sent_at'])) {
-        return true;
+    $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . rawurlencode(FIREBASE_API_KEY);
+    $payload = json_encode(['idToken' => $idToken]);
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+    } else {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => $payload,
+                'timeout' => 15,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = @file_get_contents($url, false, $context);
     }
 
-    return strtotime($user['login_otp_last_sent_at']) <= time() - OTP_RESEND_SECONDS;
+    if ($response === false || $response === null) {
+        return null;
+    }
+
+    $data = json_decode($response, true);
+    if (empty($data['users'][0])) {
+        return null;
+    }
+
+    return $data['users'][0];
 }
 
-function authSendSms($phone, $message)
-{
-    if (SMS_OTP_DEBUG) {
-        return true;
-    }
-
-    if (!defined('SMS_GATEWAY_URL') || SMS_GATEWAY_URL === '') {
-        return false;
-    }
-
-    $url = str_replace(
-        ['{phone}', '{message}'],
-        [rawurlencode($phone), rawurlencode($message)],
-        SMS_GATEWAY_URL
-    );
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 10,
-            'ignore_errors' => true,
-        ],
-    ]);
-
-    $response = @file_get_contents($url, false, $context);
-    return $response !== false;
-}
-
-function authIssueOtp($user)
+function loginWithFirebaseToken($idToken)
 {
     global $pdo;
     ensureAuthSchema();
 
-    if (!authCanSendOtp($user)) {
-        return ['ok' => false, 'message' => 'Please wait before requesting another OTP.'];
+    $idToken = trim((string)$idToken);
+    if ($idToken === '') {
+        return ['ok' => false, 'message' => 'Missing Firebase login token.'];
     }
 
-    $otp = (string)random_int(100000, 999999);
-    $hash = password_hash($otp, PASSWORD_DEFAULT);
-    $expiresAt = date('Y-m-d H:i:s', time() + OTP_EXPIRY_MINUTES * 60);
-
-    $stmt = $pdo->prepare('UPDATE users SET login_otp_hash = :hash, login_otp_expires_at = :expires_at, login_otp_attempts = 0, login_otp_last_sent_at = NOW() WHERE id = :id');
-    $stmt->execute([
-        'hash' => $hash,
-        'expires_at' => $expiresAt,
-        'id' => $user['id'],
-    ]);
-
-    $message = 'Your ' . TRUST_NAME . ' login OTP is ' . $otp . '. It expires in ' . OTP_EXPIRY_MINUTES . ' minutes.';
-    if (!authSendSms($user['phone'], $message)) {
-        return ['ok' => false, 'message' => 'SMS gateway is not configured. Please contact the administrator.'];
+    $firebaseUser = firebaseLookupIdToken($idToken);
+    if (!$firebaseUser || empty($firebaseUser['phoneNumber'])) {
+        return ['ok' => false, 'message' => 'Unable to verify Firebase phone login.'];
     }
 
-    $_SESSION['otp_phone'] = $user['phone'];
-    if (SMS_OTP_DEBUG) {
-        $_SESSION['debug_otp'] = $otp;
-    }
-
-    return ['ok' => true, 'message' => SMS_OTP_DEBUG ? 'Local test OTP: ' . $otp : 'OTP sent to your phone number.'];
-}
-
-function requestLoginOtp($phone)
-{
-    ensureAuthSchema();
-    $phone = normalizePhone($phone);
-
-    if (!preg_match('/^[6-9]\d{9}$/', $phone) || !isAllowedOtpPhone($phone)) {
+    $phone = normalizePhone($firebaseUser['phoneNumber']);
+    if (!isAllowedOtpPhone($phone)) {
         return ['ok' => false, 'message' => 'This phone number is not authorized for login.'];
     }
 
-    $user = authCreateAllowedPhoneUser($phone);
+    $user = authCreateAllowedPhoneUser($phone, $firebaseUser['localId'] ?? null);
     if (!$user || ($user['status'] ?? 'active') !== 'active') {
-        return ['ok' => false, 'message' => 'This phone number is not authorized for login.'];
+        return ['ok' => false, 'message' => 'This account is disabled.'];
     }
 
-    return authIssueOtp($user);
-}
-
-function verifyOtpAndLogin($phone, $otp)
-{
-    global $pdo;
-    ensureAuthSchema();
-
-    $phone = normalizePhone($phone);
-    $otp = preg_replace('/\D/', '', (string)$otp);
-    $user = authFindUserByPhone($phone);
-
-    if (!$user || empty($user['login_otp_hash']) || !isAllowedOtpPhone($phone)) {
-        return ['ok' => false, 'message' => 'Invalid or expired OTP.'];
-    }
-
-    if ((int)$user['login_otp_attempts'] >= OTP_MAX_ATTEMPTS) {
-        return ['ok' => false, 'message' => 'Too many invalid attempts. Request a new OTP.'];
-    }
-
-    if (empty($user['login_otp_expires_at']) || strtotime($user['login_otp_expires_at']) < time()) {
-        return ['ok' => false, 'message' => 'OTP expired. Request a new OTP.'];
-    }
-
-    if (!password_verify($otp, $user['login_otp_hash'])) {
-        $stmt = $pdo->prepare('UPDATE users SET login_otp_attempts = login_otp_attempts + 1 WHERE id = :id');
-        $stmt->execute(['id' => $user['id']]);
-        return ['ok' => false, 'message' => 'Invalid OTP.'];
-    }
-
-    $stmt = $pdo->prepare('UPDATE users SET is_phone_verified = 1, login_otp_hash = NULL, login_otp_expires_at = NULL, login_otp_attempts = 0, last_login_at = NOW() WHERE id = :id');
+    $stmt = $pdo->prepare('UPDATE users SET is_phone_verified = 1, last_login_at = NOW() WHERE id = :id');
     $stmt->execute(['id' => $user['id']]);
 
     session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['fullname'] = $user['fullname'];
-    $_SESSION['phone'] = $user['phone'];
-    unset($_SESSION['otp_phone'], $_SESSION['debug_otp']);
+    $_SESSION['phone'] = $phone;
 
     return ['ok' => true, 'message' => 'Login successful.'];
 }

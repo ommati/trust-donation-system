@@ -11,15 +11,12 @@ CREATE TABLE IF NOT EXISTS users (
     fullname VARCHAR(100) NOT NULL,
     is_phone_verified TINYINT(1) NOT NULL DEFAULT 0,
     status ENUM('active','disabled') NOT NULL DEFAULT 'active',
-    login_otp_hash VARCHAR(255) NULL,
-    login_otp_expires_at DATETIME NULL,
-    login_otp_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
-    login_otp_last_sent_at DATETIME NULL,
+    firebase_uid VARCHAR(128) NULL,
     last_login_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Authorized users login with phone OTP. No default password user is included.
+-- Authorized users login with Firebase phone OTP. No default password user is included.
 
 CREATE TABLE IF NOT EXISTS donations (
     id INT AUTO_INCREMENT PRIMARY KEY,

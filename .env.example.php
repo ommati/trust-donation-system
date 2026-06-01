@@ -15,8 +15,9 @@ define('AUTHORIZED_SIGNATORY', 'Om Jagannath Das');
 define('TRUST_SIGNATURE', 'images/signature2.jpg');
 
 define('OTP_ALLOWED_PHONES', serialize(['7506316144', '8583819442', '7003538078']));
-define('SMS_OTP_DEBUG', false);
-define('SMS_GATEWAY_URL', 'https://sms-provider.example/send?to={phone}&message={message}');
-define('OTP_EXPIRY_MINUTES', 10);
-define('OTP_RESEND_SECONDS', 60);
-define('OTP_MAX_ATTEMPTS', 5);
+define('FIREBASE_API_KEY', 'your-firebase-api-key');
+define('FIREBASE_AUTH_DOMAIN', 'your-project.firebaseapp.com');
+define('FIREBASE_PROJECT_ID', 'your-project-id');
+define('FIREBASE_APP_ID', 'your-firebase-app-id');
+define('FIREBASE_STORAGE_BUCKET', 'your-project.firebasestorage.app');
+define('FIREBASE_MESSAGING_SENDER_ID', 'your-sender-id');

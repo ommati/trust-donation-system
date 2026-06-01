@@ -63,20 +63,23 @@ if (!defined('TRUST_SIGNATURE')) {
 if (!defined('OTP_ALLOWED_PHONES')) {
     define('OTP_ALLOWED_PHONES', serialize(['7506316144', '8583819442', '7003538078']));
 }
-if (!defined('SMS_OTP_DEBUG')) {
-    define('SMS_OTP_DEBUG', true);
+if (!defined('FIREBASE_API_KEY')) {
+    define('FIREBASE_API_KEY', 'AIzaSyBDVrtTPtUXeVav1lHu__vFKFp7yTIRF1U');
 }
-if (!defined('SMS_GATEWAY_URL')) {
-    define('SMS_GATEWAY_URL', '');
+if (!defined('FIREBASE_AUTH_DOMAIN')) {
+    define('FIREBASE_AUTH_DOMAIN', 'authentication-436c0.firebaseapp.com');
 }
-if (!defined('OTP_EXPIRY_MINUTES')) {
-    define('OTP_EXPIRY_MINUTES', 10);
+if (!defined('FIREBASE_PROJECT_ID')) {
+    define('FIREBASE_PROJECT_ID', 'authentication-436c0');
 }
-if (!defined('OTP_RESEND_SECONDS')) {
-    define('OTP_RESEND_SECONDS', 60);
+if (!defined('FIREBASE_APP_ID')) {
+    define('FIREBASE_APP_ID', '1:228034766410:web:d35f352258c1b4e49a68b3');
 }
-if (!defined('OTP_MAX_ATTEMPTS')) {
-    define('OTP_MAX_ATTEMPTS', 5);
+if (!defined('FIREBASE_STORAGE_BUCKET')) {
+    define('FIREBASE_STORAGE_BUCKET', 'authentication-436c0.firebasestorage.app');
+}
+if (!defined('FIREBASE_MESSAGING_SENDER_ID')) {
+    define('FIREBASE_MESSAGING_SENDER_ID', '228034766410');
 }
 
 if (!defined('RECEIPT_PREFIX')) {
