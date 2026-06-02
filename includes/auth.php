@@ -167,7 +167,7 @@ function sendLoginOtp($userId, $remember)
     $_SESSION['pending_login_user_id'] = $userId;
     $_SESSION['pending_login_remember'] = $remember ? 1 : 0;
     $_SESSION['pending_login_otp_hash'] = hash('sha256', $otp);
-    $_SESSION['pending_login_otp_expires_at'] = time() + 600;
+    $_SESSION['pending_login_otp_expires_at'] = time() + 120;
     $_SESSION['pending_login_otp_sent_at'] = time();
     $_SESSION['pending_login_otp_attempts'] = 0;
 

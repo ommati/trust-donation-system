@@ -15,7 +15,7 @@ $loginError = '';
 $noticeMessage = $_SESSION['login_notice'] ?? '';
 unset($_SESSION['login_notice']);
 
-$resendDelay = 35;
+$resendDelay = 59;
 $resendWait = 0;
 if (!empty($_SESSION['pending_login_otp_sent_at'])) {
     $elapsed = time() - (int)$_SESSION['pending_login_otp_sent_at'];
