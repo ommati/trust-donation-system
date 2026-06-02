@@ -14,14 +14,34 @@ function gs_log($message)
     @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
 }
 
+function gs_verify_config()
+{
+    if (!defined('GSHEET_SPREADSHEET_ID') || !GSHEET_SPREADSHEET_ID) {
+        gs_log('Google Sheets Spreadsheet ID is not configured.');
+        return false;
+    }
+    if (!defined('GSHEET_CREDENTIALS_PATH') || !GSHEET_CREDENTIALS_PATH) {
+        gs_log('Google Sheets credentials path is not configured.');
+        return false;
+    }
+    if (!defined('GSHEET_SHEET_NAME') || !GSHEET_SHEET_NAME) {
+        gs_log('Google Sheets sheet name is not configured.');
+        return false;
+    }
+    if (!file_exists(GSHEET_CREDENTIALS_PATH)) {
+        gs_log('Service account JSON not found at ' . GSHEET_CREDENTIALS_PATH);
+        return false;
+    }
+    return true;
+}
+
 function gs_get_access_token()
 {
     if (!empty($_SESSION['gs_access_token']) && !empty($_SESSION['gs_access_token_expires']) && $_SESSION['gs_access_token_expires'] > time() + 30) {
         return $_SESSION['gs_access_token'];
     }
 
-    if (!defined('GSHEET_CREDENTIALS_PATH') || !file_exists(GSHEET_CREDENTIALS_PATH)) {
-        gs_log('Service account JSON not found at ' . (defined('GSHEET_CREDENTIALS_PATH') ? GSHEET_CREDENTIALS_PATH : '[not defined]'));
+    if (!gs_verify_config()) {
         return false;
     }
 
