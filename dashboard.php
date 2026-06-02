@@ -13,7 +13,7 @@ $stmt = $pdo->query("SELECT
 FROM donations");
 $stats = $stmt->fetch();
 
-$stmt = $pdo->query('SELECT id, receipt_number, donor_name, amount, payment_mode, donation_date FROM donations ORDER BY donation_date DESC, id DESC LIMIT 7');
+$stmt = $pdo->query('SELECT id, receipt_number, donor_name, amount, payment_mode, donation_date, status FROM donations ORDER BY donation_date DESC, id DESC LIMIT 7');
 $recentDonations = $stmt->fetchAll();
 
 $pendingStmt = $pdo->query("SELECT COUNT(*) AS cnt FROM donations WHERE sync_status IN ('pending','failed')");
