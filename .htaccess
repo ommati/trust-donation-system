@@ -2,7 +2,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Get the base path - adjust based on cPanel/server installation
+    # Set base path for clean URLs
     # For /trust-donation-system/ use: RewriteBase /trust-donation-system/
     # For root use: RewriteBase /
     RewriteBase /trust-donation-system/
@@ -10,16 +10,27 @@
     # Disable directory listing
     Options -Indexes
 
-    # Allow direct access to existing files
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^ - [L]
-
-    # Allow direct access to existing directories
+    # Don't rewrite real files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Rewrite clean URLs to .php files (preserve query strings)
-    RewriteRule ^([a-z0-9-]+)/?$ $1.php [L,QSA]
+    # Redirect .php URLs to clean URLs (301 permanent redirect for SEO)
+    # /verify-otp.php -> /verify-otp
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([a-z0-9-]+)\.php
+    RewriteRule ^([a-z0-9-]+)\.php$ $1 [R=301,L]
+
+    # Rewrite clean URLs to .php files
+    # Matches: /page-name or /page-name/ -> page-name.php
+    # Query strings are preserved with QSA flag
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([a-z0-9-]+)/?$ $1.php [QSA,L]
+</IfModule>
+
+# Fallback if mod_rewrite is not available: serve .php files directly
+# This allows the system to work even if rewrite rules fail
+<IfModule !mod_rewrite.c>
+    # If mod_rewrite is disabled, clean URLs won't work but PHP files still accessible
 </IfModule>
 
 # Security: Block access to sensitive files and directories
@@ -27,24 +38,14 @@
   Require all denied
 </Files>
 
-<FilesMatch "^(composer\.(json|lock)|composer\.phar|database\.sql)$">
+<FilesMatch "^(composer\.(json|lock)|composer\.phar|database\.sql|\.htaccess|\.env)$">
   Require all denied
 </FilesMatch>
 
-<FilesMatch "\.env|\.htaccess|\.sql$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Security: Block vendor and includes directories from web access
-<Directory "vendor">
-    Order allow,deny
-    Deny from all
-</Directory>
-<Directory "includes">
-    Order allow,deny
-    Deny from all
-</Directory>
+# Block vendor and includes directories from web access
+<DirectoryMatch "^.*(vendor|includes)">
+    Require all denied
+</DirectoryMatch>
 
 # PHP configuration
 <IfModule mod_php.c>
