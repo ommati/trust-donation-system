@@ -131,3 +131,25 @@ function getPaymentModes()
 {
     return unserialize(DEFAULT_PAYMENT_MODES, ['allowed_classes' => false]);
 }
+
+function ensureDonationSyncSchema()
+{
+    global $pdo;
+    try {
+        $cols = [
+            "ALTER TABLE donations ADD COLUMN sync_status ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending'",
+            "ALTER TABLE donations ADD COLUMN last_sync_at DATETIME NULL",
+            "ALTER TABLE donations ADD COLUMN sync_error TEXT NULL",
+            "ALTER TABLE donations ADD COLUMN status ENUM('active','cancelled') NOT NULL DEFAULT 'active'",
+        ];
+        foreach ($cols as $sql) {
+            try {
+                $pdo->exec($sql);
+            } catch (PDOException $e) {
+                // ignore existing columns or permission issues
+            }
+        }
+    } catch (Exception $e) {
+        // ignore
+    }
+}

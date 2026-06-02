@@ -10,6 +10,23 @@ $stats = $stmt->fetch();
 $stmt = $pdo->query('SELECT id, receipt_number, donor_name, amount, payment_mode, donation_date FROM donations ORDER BY donation_date DESC, id DESC LIMIT 7');
 $recentDonations = $stmt->fetchAll();
 
+$pendingStmt = $pdo->query("SELECT COUNT(*) AS cnt FROM donations WHERE sync_status IN ('pending','failed')");
+$pendingCount = (int)($pendingStmt->fetchColumn() ?? 0);
+
+// Handle retry action
+$retryNotice = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['retry_syncs'])) {
+    if (!validateCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
+        $retryNotice = 'Invalid request token.';
+    } else {
+        require_once __DIR__ . '/includes/google_sheets.php';
+        $res = retryPendingSyncs(200);
+        $retryNotice = 'Retry completed. Processed ' . intval($res['processed']) . ', succeeded ' . intval($res['succeeded']) . ', failed ' . intval($res['failed']) . '.';
+        $pendingStmt = $pdo->query("SELECT COUNT(*) AS cnt FROM donations WHERE sync_status IN ('pending','failed')");
+        $pendingCount = (int)($pendingStmt->fetchColumn() ?? 0);
+    }
+}
+
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row gy-4">
@@ -22,6 +39,10 @@ require_once __DIR__ . '/includes/header.php';
             <div>
                 <a href="add-donation.php" class="btn btn-success me-2">Add Donation</a>
                 <a href="donations.php" class="btn btn-outline-primary">View Donations</a>
+                <form method="post" class="d-inline ms-2">
+                    <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
+                    <button type="submit" name="retry_syncs" value="1" class="btn btn-outline-warning">Retry Failed Syncs</button>
+                </form>
             </div>
         </div>
     </div>
@@ -38,6 +59,17 @@ require_once __DIR__ . '/includes/header.php';
             <div class="card-body">
                 <h5 class="card-title">Total Donors</h5>
                 <p class="display-6 mb-0"><?php echo escape($stats['total_donors']); ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Pending Sync Records</h5>
+                <p class="display-6 mb-0"><?php echo escape($pendingCount); ?></p>
+                <?php if (!empty($retryNotice)): ?>
+                    <div class="mt-3 small"><?php echo showAlert($retryNotice, 'info'); ?></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

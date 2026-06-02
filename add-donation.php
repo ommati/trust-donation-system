@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/google_sheets.php';
 requireLogin();
 
 $errors = [];
@@ -72,6 +73,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 $pdo->commit();
+
+                // Fetch the saved donation and attempt Google Sheets sync (do not block user)
+                $stmt2 = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
+                $stmt2->execute(['id' => $donationId]);
+                $donationRow = $stmt2->fetch();
+                $syncRes = syncDonationCreate($donationRow);
+                if ($syncRes['ok']) {
+                    $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, last_sync_at = NOW(), sync_error = NULL WHERE id = :id');
+                    $stmt3->execute(['s' => 'synced', 'id' => $donationId]);
+                } else {
+                    $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, sync_error = :e WHERE id = :id');
+                    $stmt3->execute(['s' => 'pending', 'e' => substr($syncRes['message'] ?? 'Sheets sync failed', 0, 65535), 'id' => $donationId]);
+                }
 
                 $success = 'Donation recorded successfully with receipt number ' . escape($receiptNumber) . '.';
                 $values = [

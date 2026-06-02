@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/google_sheets.php';
 requireLogin();
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -69,6 +70,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id' => $id,
             ]);
             $success = 'Donation record updated successfully.';
+            // Attempt to sync update to Google Sheets (non-blocking)
+            $stmt2 = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
+            $stmt2->execute(['id' => $id]);
+            $donationRow = $stmt2->fetch();
+            $syncRes = syncDonationUpdate($donationRow);
+            if ($syncRes['ok']) {
+                $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, last_sync_at = NOW(), sync_error = NULL WHERE id = :id');
+                $stmt3->execute(['s' => 'synced', 'id' => $id]);
+            } else {
+                $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, sync_error = :e WHERE id = :id');
+                $stmt3->execute(['s' => 'pending', 'e' => substr($syncRes['message'] ?? 'Sheets sync failed', 0, 65535), 'id' => $id]);
+            }
         }
     }
 }

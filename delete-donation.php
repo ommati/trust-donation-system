@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/google_sheets.php';
 requireLogin();
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -21,8 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
         $error = 'Invalid security token. Please try again.';
     } else {
-        $stmt = $pdo->prepare('DELETE FROM donations WHERE id = :id');
-        $stmt->execute(['id' => $id]);
+        // Soft-cancel the donation and sync status to Google Sheets
+        $stmt = $pdo->prepare('UPDATE donations SET status = :status, updated_at = NOW() WHERE id = :id');
+        $stmt->execute(['status' => 'cancelled', 'id' => $id]);
+        // Attempt to sync cancellation (non-blocking)
+        $stmt2 = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
+        $stmt2->execute(['id' => $id]);
+        $donationRow = $stmt2->fetch();
+        $syncRes = syncDonationCancel($donationRow);
+        if ($syncRes['ok']) {
+            $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, last_sync_at = NOW(), sync_error = NULL WHERE id = :id');
+            $stmt3->execute(['s' => 'synced', 'id' => $id]);
+        } else {
+            $stmt3 = $pdo->prepare('UPDATE donations SET sync_status = :s, sync_error = :e WHERE id = :id');
+            $stmt3->execute(['s' => 'pending', 'e' => substr($syncRes['message'] ?? 'Sheets sync failed', 0, 65535), 'id' => $id]);
+        }
         redirect('donations.php');
     }
 }
