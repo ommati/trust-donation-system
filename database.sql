@@ -30,9 +30,25 @@ CREATE TABLE IF NOT EXISTS donations (
     payment_mode ENUM('Cash','UPI','Bank Transfer','Cheque') NOT NULL DEFAULT 'Cash',
     purpose VARCHAR(255),
     remarks TEXT,
+    status ENUM('active','cancelled') NOT NULL DEFAULT 'active',
+    cancel_reason TEXT NULL,
+    cancelled_at DATETIME NULL,
+    cancelled_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_donor_name (donor_name),
     INDEX idx_receipt_number (receipt_number),
-    INDEX idx_donation_date (donation_date)
+    INDEX idx_donation_date (donation_date),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    action VARCHAR(100) NOT NULL,
+    donation_id INT NULL,
+    details TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_user_id (user_id),
+    INDEX idx_audit_donation_id (donation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

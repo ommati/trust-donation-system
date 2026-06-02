@@ -5,7 +5,12 @@ require_once __DIR__ . '/includes/functions.php';
 requireLogin();
 ensureDonationSyncSchema();
 
-$stmt = $pdo->query('SELECT COALESCE(SUM(amount), 0) AS total_donations, COUNT(DISTINCT donor_name) AS total_donors FROM donations');
+$stmt = $pdo->query("SELECT
+    COALESCE(SUM(CASE WHEN status = 'active' THEN amount ELSE 0 END), 0) AS active_total,
+    COALESCE(SUM(status = 'active'), 0) AS active_count,
+    COALESCE(SUM(status = 'cancelled'), 0) AS cancelled_count,
+    COUNT(DISTINCT CASE WHEN status = 'active' THEN donor_name END) AS active_donor_count
+FROM donations");
 $stats = $stmt->fetch();
 
 $stmt = $pdo->query('SELECT id, receipt_number, donor_name, amount, payment_mode, donation_date FROM donations ORDER BY donation_date DESC, id DESC LIMIT 7');
@@ -50,16 +55,17 @@ require_once __DIR__ . '/includes/header.php';
     <div class="col-lg-4 col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title">Total Donations</h5>
-                <p class="display-6 mb-0"><?php echo formatCurrency($stats['total_donations']); ?></p>
+                <h5 class="card-title">Active Donations</h5>
+                <p class="display-6 mb-0"><?php echo escape($stats['active_count']); ?></p>
+                <small class="text-muted">Active total: <?php echo formatCurrency($stats['active_total']); ?></small>
             </div>
         </div>
     </div>
     <div class="col-lg-4 col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title">Total Donors</h5>
-                <p class="display-6 mb-0"><?php echo escape($stats['total_donors']); ?></p>
+                <h5 class="card-title">Cancelled Donations</h5>
+                <p class="display-6 mb-0"><?php echo escape($stats['cancelled_count']); ?></p>
             </div>
         </div>
     </div>

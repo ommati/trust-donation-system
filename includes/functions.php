@@ -132,6 +132,21 @@ function getPaymentModes()
     return unserialize(DEFAULT_PAYMENT_MODES, ['allowed_classes' => false]);
 }
 
+function recordAuditLog($pdo, $userId, $action, $donationId = null, $details = null)
+{
+    try {
+        $stmt = $pdo->prepare('INSERT INTO audit_logs (user_id, action, donation_id, details, created_at) VALUES (:user_id, :action, :donation_id, :details, NOW())');
+        $stmt->execute([
+            'user_id' => $userId,
+            'action' => $action,
+            'donation_id' => $donationId,
+            'details' => $details,
+        ]);
+    } catch (PDOException $e) {
+        // ignore logging failures
+    }
+}
+
 function ensureDonationSyncSchema()
 {
     global $pdo;
@@ -141,6 +156,9 @@ function ensureDonationSyncSchema()
             "ALTER TABLE donations ADD COLUMN last_sync_at DATETIME NULL",
             "ALTER TABLE donations ADD COLUMN sync_error TEXT NULL",
             "ALTER TABLE donations ADD COLUMN status ENUM('active','cancelled') NOT NULL DEFAULT 'active'",
+            "ALTER TABLE donations ADD COLUMN cancel_reason TEXT NULL",
+            "ALTER TABLE donations ADD COLUMN cancelled_at DATETIME NULL",
+            "ALTER TABLE donations ADD COLUMN cancelled_by INT NULL",
         ];
         foreach ($cols as $sql) {
             try {
@@ -148,6 +166,22 @@ function ensureDonationSyncSchema()
             } catch (PDOException $e) {
                 // ignore existing columns or permission issues
             }
+        }
+        try {
+            $pdo->exec(
+                'CREATE TABLE IF NOT EXISTS audit_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NULL,
+                    action VARCHAR(100) NOT NULL,
+                    donation_id INT NULL,
+                    details TEXT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_audit_user_id (user_id),
+                    INDEX idx_audit_donation_id (donation_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
+            );
+        } catch (PDOException $e) {
+            // ignore existing table or permission issues
         }
     } catch (Exception $e) {
         // ignore

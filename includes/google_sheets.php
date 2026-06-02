@@ -264,6 +264,8 @@ function syncDonationCreate($donation)
             $donation['purpose'] ?? '',
             $donation['remarks'] ?? '',
             $donation['status'] ?? 'active',
+            $donation['cancel_reason'] ?? '',
+            !empty($donation['cancelled_at']) ? $donation['cancelled_at'] : '',
         ];
         $res = gs_append_row($values);
         if (!$res['ok']) {
@@ -303,6 +305,8 @@ function syncDonationUpdate($donation)
             $donation['purpose'] ?? '',
             $donation['remarks'] ?? '',
             $donation['status'] ?? 'active',
+            $donation['cancel_reason'] ?? '',
+            !empty($donation['cancelled_at']) ? $donation['cancelled_at'] : '',
         ];
         $res = gs_update_row($row, $values);
         if (!$res['ok']) {

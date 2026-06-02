@@ -75,6 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $pdo->commit();
 
+                recordAuditLog($pdo, $_SESSION['user_id'] ?? null, 'Donation Created', $donationId, json_encode([
+                    'receipt_number' => $receiptNumber,
+                    'donor_name' => $values['donor_name'],
+                    'amount' => $values['amount'],
+                ]));
+
                 // Fetch the saved donation and attempt Google Sheets sync (do not block user)
                 $stmt2 = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
                 $stmt2->execute(['id' => $donationId]);

@@ -70,6 +70,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'remarks' => $values['remarks'],
                 'id' => $id,
             ]);
+            recordAuditLog($pdo, $_SESSION['user_id'] ?? null, 'Donation Updated', $id, json_encode([
+                'donation_date' => $values['donation_date'],
+                'donor_name' => $values['donor_name'],
+                'amount' => $values['amount'],
+                'payment_mode' => $values['payment_mode'],
+                'purpose' => $values['purpose'],
+                'remarks' => $values['remarks'],
+            ]));
             $success = 'Donation record updated successfully.';
             // Attempt to sync update to Google Sheets (non-blocking)
             $stmt2 = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
