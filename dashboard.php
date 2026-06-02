@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 requireLogin();
+ensureDonationSyncSchema();
 
 $stmt = $pdo->query('SELECT COALESCE(SUM(amount), 0) AS total_donations, COUNT(DISTINCT donor_name) AS total_donors FROM donations');
 $stats = $stmt->fetch();
