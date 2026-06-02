@@ -1,31 +1,29 @@
 # Enable mod_rewrite
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # Set base path for clean URLs
-    # For /trust-donation-system/ use: RewriteBase /trust-donation-system/
-    # For root use: RewriteBase /
     RewriteBase /trust-donation-system/
 
-    # Disable directory listing
-    Options -Indexes
+    # Remove trailing slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [R=301,L]
 
-    # Don't rewrite real files or directories
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    # Don't rewrite if file exists
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Don't rewrite if directory exists
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Redirect .php URLs to clean URLs (301 permanent redirect for SEO)
-    # /verify-otp.php -> /verify-otp
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([a-z0-9-]+)\.php
-    RewriteRule ^([a-z0-9-]+)\.php$ $1 [R=301,L]
+    # Redirect old .php URLs to clean URLs
+    RewriteCond %{THE_REQUEST} ^GET\ /trust-donation-system/([a-z0-9-]+)\.php [NC]
+    RewriteRule ^([a-z0-9-]+)\.php$ /trust-donation-system/$1 [R=301,L,NC]
 
     # Rewrite clean URLs to .php files
-    # Matches: /page-name or /page-name/ -> page-name.php
-    # Query strings are preserved with QSA flag
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^([a-z0-9-]+)/?$ $1.php [QSA,L]
 </IfModule>
+
 
 # Fallback if mod_rewrite is not available: serve .php files directly
 # This allows the system to work even if rewrite rules fail
