@@ -14,6 +14,38 @@ function gs_log($message)
     @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
 }
 
+function gs_resolve_credentials_path()
+{
+    if (!defined('GSHEET_CREDENTIALS_PATH') || !GSHEET_CREDENTIALS_PATH) {
+        return false;
+    }
+
+    $path = GSHEET_CREDENTIALS_PATH;
+    if (file_exists($path)) {
+        return $path;
+    }
+
+    $isAbsolute = preg_match('#^(?:[A-Za-z]:[\\/]|[\\/]{2}|/)#', $path);
+    $baseDir = realpath(__DIR__ . '/../') ?: __DIR__ . '/../';
+    $normalizedPath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, ltrim($path, '/\\'));
+
+    $candidates = [];
+    if (!$isAbsolute) {
+        $candidates[] = $baseDir . DIRECTORY_SEPARATOR . $normalizedPath;
+    } else {
+        $candidates[] = $baseDir . DIRECTORY_SEPARATOR . $normalizedPath;
+    }
+
+    foreach ($candidates as $candidate) {
+        if (file_exists($candidate)) {
+            gs_log('Resolved credentials path from ' . $path . ' to ' . $candidate);
+            return $candidate;
+        }
+    }
+
+    return $path;
+}
+
 function gs_verify_config()
 {
     if (!defined('GSHEET_SPREADSHEET_ID') || !GSHEET_SPREADSHEET_ID) {
@@ -28,9 +60,16 @@ function gs_verify_config()
         gs_log('Google Sheets sheet name is not configured.');
         return false;
     }
-    if (!file_exists(GSHEET_CREDENTIALS_PATH)) {
-        gs_log('Service account JSON not found at ' . GSHEET_CREDENTIALS_PATH);
+
+    $path = gs_resolve_credentials_path();
+    if (!file_exists($path)) {
+        gs_log('Service account JSON not found at ' . $path);
+        $resolved = realpath($path);
+        gs_log('Resolved path: ' . ($resolved !== false ? $resolved : '[not resolvable]'));
         return false;
+    }
+    if ($path !== GSHEET_CREDENTIALS_PATH) {
+        define('GSHEET_CREDENTIALS_PATH_RESOLVED', $path);
     }
     return true;
 }
@@ -45,9 +84,10 @@ function gs_get_access_token()
         return false;
     }
 
-    $json = json_decode(file_get_contents(GSHEET_CREDENTIALS_PATH), true);
+    $credentialsPath = defined('GSHEET_CREDENTIALS_PATH_RESOLVED') ? GSHEET_CREDENTIALS_PATH_RESOLVED : GSHEET_CREDENTIALS_PATH;
+    $json = json_decode(file_get_contents($credentialsPath), true);
     if (!$json) {
-        gs_log('Invalid service account JSON');
+        gs_log('Invalid service account JSON at ' . $credentialsPath);
         return false;
     }
 
@@ -84,20 +124,16 @@ function gs_get_access_token()
     $assertion .= '.' . rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
     $post = http_build_query(['grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', 'assertion' => $assertion]);
-    $opts = [
-        'http' => [
-            'method' => 'POST',
-            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-            'content' => $post,
-            'timeout' => 10,
-        ],
-    ];
-    $response = @file_get_contents($token_url, false, stream_context_create($opts));
+    $response = gs_http_post($token_url, $post, ['Content-Type: application/x-www-form-urlencoded']);
     if ($response === false) {
         gs_log('Failed to exchange JWT for access token');
         return false;
     }
     $data = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        gs_log('Invalid JSON response from token endpoint: ' . json_last_error_msg() . ' response=' . $response);
+        return false;
+    }
     if (empty($data['access_token'])) {
         gs_log('Token response error: ' . $response);
         return false;
@@ -105,6 +141,43 @@ function gs_get_access_token()
     $_SESSION['gs_access_token'] = $data['access_token'];
     $_SESSION['gs_access_token_expires'] = time() + intval($data['expires_in'] ?? 3600);
     return $_SESSION['gs_access_token'];
+}
+
+function gs_http_post($url, $body, $headers = [])
+{
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+        if ($response === false) {
+            gs_log('HTTP POST curl error: ' . $err);
+            return false;
+        }
+        return $response;
+    }
+
+    $opts = [
+        'http' => [
+            'method' => 'POST',
+            'header' => implode("\r\n", $headers) . "\r\n",
+            'content' => $body,
+            'timeout' => 20,
+        ],
+    ];
+    $response = @file_get_contents($url, false, stream_context_create($opts));
+    if ($response === false) {
+        gs_log('HTTP POST file_get_contents failed for ' . $url);
+        return false;
+    }
+    return $response;
 }
 
 function gs_sheets_request($method, $path, $body = null)

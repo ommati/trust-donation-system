@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $results[] = 'GSHEET_SPREADSHEET_ID=' . GSHEET_SPREADSHEET_ID;
             $results[] = 'GSHEET_CREDENTIALS_PATH=' . GSHEET_CREDENTIALS_PATH;
+            if (defined('GSHEET_CREDENTIALS_PATH_RESOLVED')) {
+                $results[] = 'GSHEET_CREDENTIALS_PATH_RESOLVED=' . GSHEET_CREDENTIALS_PATH_RESOLVED;
+            }
             $results[] = 'GSHEET_SHEET_NAME=' . GSHEET_SHEET_NAME;
             $token = gs_get_access_token();
             if ($token) {
