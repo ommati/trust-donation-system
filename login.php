@@ -20,11 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = loginUser($_POST['username'] ?? '', $_POST['password'] ?? '', !empty($_POST['remember']));
         if ($result['ok'] === true) {
-            redirect('dashboard.php');
+            redirect('dashboard');
         }
         if ($result['ok'] === 'pending_otp') {
             $_SESSION['login_notice'] = $result['message'];
-            redirect('verify-otp.php');
+            redirect('verify-otp');
         }
         $loginError = $result['message'];
     }
