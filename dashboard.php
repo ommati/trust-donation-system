@@ -98,17 +98,25 @@ require_once __DIR__ . '/includes/header.php';
                                 <th>Donor</th>
                                 <th>Amount</th>
                                 <th>Payment</th>
+                                <th>Status</th>
                                 <th class="text-end">Action</th>
                             </tr>
                             </thead>
                             <tbody>
                             <?php foreach ($recentDonations as $donation): ?>
-                                <tr>
+                                <tr class="<?php echo $donation['status'] === 'cancelled' ? 'table-danger' : ''; ?>">
                                     <td><?php echo escape($donation['receipt_number']); ?></td>
                                     <td><?php echo escape($donation['donation_date']); ?></td>
                                     <td><?php echo escape($donation['donor_name']); ?></td>
                                     <td><?php echo formatCurrency($donation['amount']); ?></td>
                                     <td><?php echo escape($donation['payment_mode']); ?></td>
+                                    <td>
+                                        <?php if ($donation['status'] === 'cancelled'): ?>
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success">Active</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-end">
                                         <a href="view-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
                                     </td>
