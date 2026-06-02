@@ -545,6 +545,12 @@ if (!$donation) {
     redirect('donations.php');
 }
 
+if (!empty($donation['status']) && $donation['status'] === 'cancelled') {
+    http_response_code(403);
+    echo '<!doctype html><html><head><meta charset="utf-8"><title>Receipt disabled</title></head><body><div style="max-width:640px;margin:2rem auto;padding:1.5rem;border:1px solid #ccc;border-radius:8px;font-family:Arial,Helvetica,sans-serif;"><h1 style="margin-top:0;color:#b02a37;">Receipt download disabled</h1><p>The donation receipt cannot be downloaded because this donation has been cancelled.</p><p><a href="view-donation.php?id=' . htmlspecialchars($donation['id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Back to donation details</a></p></div></body></html>';
+    exit;
+}
+
 $autoload = __DIR__ . '/vendor/autoload.php';
 if (!file_exists($autoload)) {
     http_response_code(500);
