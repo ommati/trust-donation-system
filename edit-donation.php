@@ -8,14 +8,14 @@ requireLogin();
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $stmt = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $donation = $stmt->fetch();
 if (!$donation) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $errors = [];
@@ -105,7 +105,7 @@ require_once __DIR__ . '/includes/header.php';
                     <h5 class="mb-0">Edit Donation</h5>
                     <small class="text-muted">Modify donation details for receipt <?php echo escape($donation['receipt_number']); ?>.</small>
                 </div>
-                <a href="view-donation.php?id=<?php echo $id; ?>" class="btn btn-outline-secondary btn-sm">Back to Details</a>
+                <a href="<?php echo url('view-donation') . '?id=' . urlencode($id); ?>" class="btn btn-outline-secondary btn-sm">Back to Details</a>
             </div>
             <div class="card-body">
                 <?php if ($success): ?>
@@ -116,7 +116,7 @@ require_once __DIR__ . '/includes/header.php';
                         <?php echo showAlert($error, 'danger'); ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
-                <form method="post" action="edit-donation.php?id=<?php echo $id; ?>" data-prevent-duplicate>
+                <form method="post" action="<?php echo url('edit-donation') . '?id=' . urlencode($id); ?>" data-prevent-duplicate>
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
                     <div class="row gy-3">
                         <div class="col-md-4">
@@ -161,7 +161,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-between gap-2">
-                        <a href="view-donation.php?id=<?php echo $id; ?>" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="<?php echo url('view-donation') . '?id=' . urlencode($id); ?>" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Update Donation</button>
                     </div>
                 </form>

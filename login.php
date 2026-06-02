@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
 if (isLoggedIn()) {
-    redirect('dashboard.php');
+    redirect('dashboard');
 }
 
 $loginError = '';
@@ -46,7 +46,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php echo showAlert($loginError, 'danger'); ?>
                 <?php endif; ?>
 
-                <form method="post" autocomplete="on">
+                <form method="post" action="<?php echo url('login'); ?>" autocomplete="on">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
 
                     <div class="mb-3">

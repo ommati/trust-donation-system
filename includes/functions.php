@@ -7,8 +7,34 @@ function escape($value)
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function basePath()
+{
+    if (!defined('BASE_PATH')) {
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+        $basePath = '/' . trim(str_replace('\\', '/', dirname($scriptName)), '/');
+        if ($basePath === '/') {
+            $basePath = '';
+        }
+        define('BASE_PATH', $basePath);
+    }
+    return BASE_PATH;
+}
+
+function url($path = '')
+{
+    $path = trim((string)$path, '/');
+    $base = basePath();
+    if ($path === '') {
+        return $base === '' ? '/' : $base . '/';
+    }
+    return $base . '/' . $path;
+}
+
 function redirect($url)
 {
+    if (!preg_match('#^(?:https?://|/|//|mailto:|javascript:)#i', $url)) {
+        $url = url($url);
+    }
     header('Location: ' . $url);
     exit;
 }

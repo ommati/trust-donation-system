@@ -124,7 +124,7 @@ require_once __DIR__ . '/includes/header.php';
                     <h5 class="mb-0">Add Donation</h5>
                     <small class="text-muted">Record a new donation and generate a receipt number.</small>
                 </div>
-                <a href="donations.php" class="btn btn-outline-secondary btn-sm">Back to Donations</a>
+                <a href="<?php echo url('donations'); ?>" class="btn btn-outline-secondary btn-sm">Back to Donations</a>
             </div>
             <div class="card-body">
                 <?php if ($success): ?>
@@ -135,7 +135,7 @@ require_once __DIR__ . '/includes/header.php';
                         <?php echo showAlert($error, 'danger'); ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
-                <form method="post" action="add-donation.php" data-prevent-duplicate>
+                <form method="post" action="<?php echo url('add-donation'); ?>" data-prevent-duplicate>
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
                     <div class="row gy-3">
                         <div class="col-md-4">
@@ -180,7 +180,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
-                        <a href="dashboard.php" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="<?php echo url('dashboard'); ?>" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Save Donation</button>
                     </div>
                 </form>

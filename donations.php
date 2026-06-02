@@ -54,14 +54,14 @@ if (isset($_GET['notice']) && $_GET['notice'] === 'cancelled') {
                 <h1 class="h3 mb-0">Donations</h1>
                 <p class="text-muted mb-0">Search, edit and manage donation receipts.</p>
             </div>
-            <a href="add-donation.php" class="btn btn-success">New Donation</a>
+            <a href="<?php echo url('add-donation'); ?>" class="btn btn-success">New Donation</a>
         </div>
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <?php if ($noticeMessage): ?>
                     <?php echo showAlert($noticeMessage, 'success'); ?>
                 <?php endif; ?>
-                <form method="get" action="donations.php" class="row gy-3 gx-3 align-items-end">
+                <form method="get" action="<?php echo url('donations'); ?>" class="row gy-3 gx-3 align-items-end">
                     <div class="col-md-4">
                         <label class="form-label">Donor Name</label>
                         <input type="search" class="form-control" name="donor_name" value="<?php echo escape($searchDonor); ?>" placeholder="Search by donor name">
@@ -125,11 +125,11 @@ if (isset($_GET['notice']) && $_GET['notice'] === 'cancelled') {
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="view-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>
+                                        <a href="<?php echo url('view-donation') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-sm btn-outline-secondary">View</a>
                                         <?php if ($donation['status'] === 'cancelled'): ?>
                                             <button type="button" class="btn btn-sm btn-outline-primary" disabled>Edit</button>
                                         <?php else: ?>
-                                            <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            <a href="<?php echo url('edit-donation') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-sm btn-outline-primary">Edit</a>
                                         <?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-danger cancel-donation-btn" data-bs-toggle="modal" data-bs-target="#cancelDonationModal" data-id="<?php echo $donation['id']; ?>" data-receipt="<?php echo escape($donation['receipt_number']); ?>" data-donor="<?php echo escape($donation['donor_name']); ?>" <?php echo $donation['status'] !== 'active' ? 'disabled' : ''; ?>>Cancel Donation</button>
                                     </td>
@@ -146,7 +146,7 @@ if (isset($_GET['notice']) && $_GET['notice'] === 'cancelled') {
                                     <h5 class="modal-title" id="cancelDonationModalLabel">Cancel Donation Receipt</h5>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form method="post" action="delete-donation.php" id="cancelDonationForm">
+                                <form method="post" action="<?php echo url('delete-donation'); ?>" id="cancelDonationForm">
                                     <div class="modal-body">
                                         <p id="cancelDonationModalMessage">This action will cancel the donation record but will not permanently remove it.</p>
                                         <div class="mb-3">

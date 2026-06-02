@@ -7,14 +7,14 @@ requireLogin();
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $stmt = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $donation = $stmt->fetch();
 if (!$donation) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 require_once __DIR__ . '/includes/header.php';
@@ -79,7 +79,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
             <div class="mt-4 d-flex gap-2 justify-content-center">
-                <a class="btn btn-outline-secondary" href="download-pdf.php?id=<?php echo $donation['id']; ?>">Download PDF</a>
+                <a class="btn btn-outline-secondary" href="<?php echo url('download-pdf') . '?id=' . urlencode($donation['id']); ?>">Download PDF</a>
                 <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
             </div>
         </div>

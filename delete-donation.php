@@ -11,14 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?: $id;
 }
 if (!$id) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $stmt = $pdo->prepare('SELECT receipt_number, donor_name, status FROM donations WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $donation = $stmt->fetch();
 if (!$donation) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $error = '';
@@ -72,14 +72,14 @@ require_once __DIR__ . '/includes/header.php';
                     <?php echo showAlert($error, 'danger'); ?>
                 <?php endif; ?>
                 <p>This action will cancel the donation record but will not permanently remove it. You are cancelling receipt <strong><?php echo escape($donation['receipt_number']); ?></strong> for <strong><?php echo escape($donation['donor_name']); ?></strong>.</p>
-                <form method="post" action="delete-donation.php?id=<?php echo $id; ?>">
+                <form method="post" action="<?php echo url('delete-donation') . '?id=' . urlencode($id); ?>">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
                     <div class="mb-3">
                         <label class="form-label" for="cancel_reason">Cancellation Reason</label>
                         <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="3" required><?php echo escape($_POST['cancel_reason'] ?? ''); ?></textarea>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="donations.php" class="btn btn-secondary">Close</a>
+                        <a href="<?php echo url('donations'); ?>" class="btn btn-secondary">Close</a>
                         <button type="submit" class="btn btn-danger">Confirm Cancel</button>
                     </div>
                 </form>

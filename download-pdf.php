@@ -535,19 +535,19 @@ function buildReceiptHtml($donation)
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $stmt = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $donation = $stmt->fetch();
 if (!$donation) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 if (!empty($donation['status']) && $donation['status'] === 'cancelled') {
     http_response_code(403);
-    echo '<!doctype html><html><head><meta charset="utf-8"><title>Receipt disabled</title></head><body><div style="max-width:640px;margin:2rem auto;padding:1.5rem;border:1px solid #ccc;border-radius:8px;font-family:Arial,Helvetica,sans-serif;"><h1 style="margin-top:0;color:#b02a37;">Receipt download disabled</h1><p>The donation receipt cannot be downloaded because this donation has been cancelled.</p><p><a href="view-donation.php?id=' . htmlspecialchars($donation['id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Back to donation details</a></p></div></body></html>';
+    echo '<!doctype html><html><head><meta charset="utf-8"><title>Receipt disabled</title></head><body><div style="max-width:640px;margin:2rem auto;padding:1.5rem;border:1px solid #ccc;border-radius:8px;font-family:Arial,Helvetica,sans-serif;"><h1 style="margin-top:0;color:#b02a37;">Receipt download disabled</h1><p>The donation receipt cannot be downloaded because this donation has been cancelled.</p><p><a href="' . htmlspecialchars(url('view-donation') . '?id=' . urlencode($donation['id']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Back to donation details</a></p></div></body></html>';
     exit;
 }
 

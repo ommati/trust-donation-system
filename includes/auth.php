@@ -21,9 +21,9 @@ function requireLogin()
 {
     if (!isLoggedIn()) {
         if (!empty($_SESSION['pending_login_user_id'])) {
-            redirect('verify-otp.php');
+            redirect('verify-otp');
         } else {
-            redirect('login.php');
+            redirect('login');
         }
     }
 }

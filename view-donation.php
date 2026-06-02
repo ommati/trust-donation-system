@@ -7,14 +7,14 @@ requireLogin();
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 $stmt = $pdo->prepare('SELECT * FROM donations WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $donation = $stmt->fetch();
 if (!$donation) {
-    redirect('donations.php');
+    redirect('donations');
 }
 
 require_once __DIR__ . '/includes/header.php';
@@ -33,10 +33,10 @@ require_once __DIR__ . '/includes/header.php';
                         <button type="button" class="btn btn-outline-secondary" disabled>PDF unavailable</button>
                         <button type="button" class="btn btn-outline-secondary" disabled>Edit</button>
                     <?php else: ?>
-                        <a href="receipt.php?id=<?php echo $donation['id']; ?>" class="btn btn-primary">Receipt</a>
-                        <a href="download-pdf.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-primary">PDF</a>
-                        <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-secondary">Edit</a>
-                        <a href="delete-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-danger">Cancel Donation</a>
+                        <a href="<?php echo url('receipt') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-primary">Receipt</a>
+                        <a href="<?php echo url('download-pdf') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-outline-primary">PDF</a>
+                        <a href="<?php echo url('edit-donation') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-outline-secondary">Edit</a>
+                        <a href="<?php echo url('delete-donation') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-outline-danger">Cancel Donation</a>
                     <?php endif; ?>
                 </div>
             </div>

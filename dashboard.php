@@ -43,8 +43,8 @@ require_once __DIR__ . '/includes/header.php';
                 <p class="text-muted">Overview of donations and recent activity.</p>
             </div>
             <div>
-                <a href="add-donation.php" class="btn btn-success me-2">Add Donation</a>
-                <a href="donations.php" class="btn btn-outline-primary">View Donations</a>
+                <a href="<?php echo url('add-donation'); ?>" class="btn btn-success me-2">Add Donation</a>
+                <a href="<?php echo url('donations'); ?>" class="btn btn-outline-primary">View Donations</a>
                 <form method="post" class="d-inline ms-2">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
                     <button type="submit" name="retry_syncs" value="1" class="btn btn-outline-warning">Retry Failed Syncs</button>
@@ -118,7 +118,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="view-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a href="<?php echo url('view-donation') . '?id=' . urlencode($donation['id']); ?>" class="btn btn-sm btn-outline-primary">View</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

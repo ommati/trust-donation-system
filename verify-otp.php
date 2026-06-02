@@ -4,11 +4,11 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
 if (isLoggedIn()) {
-    redirect('dashboard.php');
+    redirect('dashboard');
 }
 
 if (empty($_SESSION['pending_login_user_id']) || empty($_SESSION['pending_login_otp_hash']) || empty($_SESSION['pending_login_otp_expires_at'])) {
-    redirect('login.php');
+    redirect('login');
 }
 
 $loginError = '';
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $loginError = 'Invalid request token. Please try again.';
     } elseif (!empty($_POST['resend'])) {
         if (empty($_SESSION['pending_login_user_id'])) {
-            redirect('login.php');
+            redirect('login');
         }
         if ($resendWait > 0) {
             $loginError = 'Please wait ' . $resendWait . ' seconds before resending the code.';
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = verifyLoginOtp($_POST['otp'] ?? '');
         if ($result['ok']) {
-            redirect('dashboard.php');
+            redirect('dashboard');
         }
         $loginError = $result['message'];
     }
@@ -89,7 +89,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                 </div>
                 <div class="text-center small">
-                    <a href="login.php">Back to login</a>
+                    <a href="<?php echo url('login'); ?>">Back to login</a>
                 </div>
             </div>
         </div>
