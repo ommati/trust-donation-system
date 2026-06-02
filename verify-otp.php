@@ -18,6 +18,16 @@ unset($_SESSION['login_notice']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
         $loginError = 'Invalid request token. Please try again.';
+    } elseif (!empty($_POST['resend'])) {
+        if (empty($_SESSION['pending_login_user_id'])) {
+            redirect('login.php');
+        }
+        $remember = !empty($_SESSION['pending_login_remember']);
+        if (sendLoginOtp((int)$_SESSION['pending_login_user_id'], $remember)) {
+            $noticeMessage = 'A new verification code has been sent to your email.';
+        } else {
+            $loginError = 'Unable to resend the verification code. Please try again later.';
+        }
     } else {
         $result = verifyLoginOtp($_POST['otp'] ?? '');
         if ($result['ok']) {
@@ -53,11 +63,15 @@ require_once __DIR__ . '/includes/header.php';
                         <input type="text" class="form-control" id="otp" name="otp" maxlength="6" required pattern="\d{6}" autocomplete="one-time-code" autofocus>
                     </div>
 
-                    <div class="d-grid">
+                    <div class="d-grid mb-2">
                         <button type="submit" class="btn btn-primary">Verify Code</button>
                     </div>
                 </form>
-                <div class="mt-3 text-center small">
+                <form method="post" autocomplete="off" class="d-grid mb-3">
+                    <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
+                    <button type="submit" name="resend" value="1" class="btn btn-outline-secondary">Resend Code</button>
+                </form>
+                <div class="text-center small">
                     <a href="login.php">Back to login</a>
                 </div>
             </div>
