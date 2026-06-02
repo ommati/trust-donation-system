@@ -8,13 +8,23 @@ if (isLoggedIn()) {
 }
 
 $loginError = '';
+$successMessage = '';
+if (!empty($_SESSION['login_notice'])) {
+    $successMessage = $_SESSION['login_notice'];
+    unset($_SESSION['login_notice']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
         $loginError = 'Invalid request token. Please try again.';
     } else {
         $result = loginUser($_POST['username'] ?? '', $_POST['password'] ?? '', !empty($_POST['remember']));
-        if ($result['ok']) {
+        if ($result['ok'] === true) {
             redirect('dashboard.php');
+        }
+        if ($result['ok'] === 'pending_otp') {
+            $_SESSION['login_notice'] = $result['message'];
+            redirect('verify-otp.php');
         }
         $loginError = $result['message'];
     }
@@ -29,6 +39,9 @@ require_once __DIR__ . '/includes/header.php';
                 <h4 class="mb-0">Admin Login</h4>
             </div>
             <div class="card-body p-4">
+                <?php if ($successMessage): ?>
+                    <?php echo showAlert($successMessage, 'success'); ?>
+                <?php endif; ?>
                 <?php if ($loginError): ?>
                     <?php echo showAlert($loginError, 'danger'); ?>
                 <?php endif; ?>
