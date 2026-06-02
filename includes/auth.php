@@ -1,11 +1,15 @@
 <?php
-// auth.php - Firebase phone authentication helpers
+// auth.php - Single administrator authentication helpers
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/functions.php';
 
 function isLoggedIn()
 {
-    return !empty($_SESSION['user_id']);
+    if (!empty($_SESSION['user_id'])) {
+        return true;
+    }
+
+    return loginFromRememberCookie();
 }
 
 function requireLogin()
@@ -13,26 +17,6 @@ function requireLogin()
     if (!isLoggedIn()) {
         redirect('login.php');
     }
-}
-
-function normalizePhone($phone)
-{
-    $phone = preg_replace('/\D/', '', (string)$phone);
-    if (strlen($phone) > 10 && substr($phone, 0, 2) === '91') {
-        $phone = substr($phone, -10);
-    }
-    return $phone;
-}
-
-function allowedOtpPhones()
-{
-    $phones = unserialize(OTP_ALLOWED_PHONES, ['allowed_classes' => false]);
-    return array_map('normalizePhone', is_array($phones) ? $phones : []);
-}
-
-function isAllowedOtpPhone($phone)
-{
-    return in_array(normalizePhone($phone), allowedOtpPhones(), true);
 }
 
 function authColumnExists($table, $column)
@@ -43,6 +27,16 @@ function authColumnExists($table, $column)
     return (int)$stmt->fetchColumn() > 0;
 }
 
+function authExecQuietly($sql)
+{
+    global $pdo;
+    try {
+        $pdo->exec($sql);
+    } catch (PDOException $exception) {
+        // Legacy/shared-host schemas may already have equivalent columns or indexes.
+    }
+}
+
 function ensureAuthSchema()
 {
     static $done = false;
@@ -50,163 +44,209 @@ function ensureAuthSchema()
         return;
     }
 
-    global $pdo;
     $columns = [
-        'phone' => "ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL AFTER username",
-        'is_phone_verified' => "ALTER TABLE users ADD COLUMN is_phone_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER fullname",
-        'status' => "ALTER TABLE users ADD COLUMN status ENUM('active','disabled') NOT NULL DEFAULT 'active' AFTER is_phone_verified",
-        'firebase_uid' => "ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128) NULL AFTER status",
-        'last_login_at' => "ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL AFTER firebase_uid",
+        'email' => "ALTER TABLE users ADD COLUMN email VARCHAR(190) NULL AFTER username",
+        'email_verified_at' => "ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL AFTER fullname",
+        'status' => "ALTER TABLE users ADD COLUMN status ENUM('active','disabled') NOT NULL DEFAULT 'active' AFTER email_verified_at",
+        'remember_token_hash' => "ALTER TABLE users ADD COLUMN remember_token_hash VARCHAR(255) NULL AFTER status",
+        'remember_token_expires_at' => "ALTER TABLE users ADD COLUMN remember_token_expires_at DATETIME NULL AFTER remember_token_hash",
+        'last_login_at' => "ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL AFTER remember_token_expires_at",
     ];
 
     foreach ($columns as $column => $sql) {
         if (!authColumnExists('users', $column)) {
-            $pdo->exec($sql);
+            authExecQuietly($sql);
         }
     }
 
-    try {
-        $pdo->exec('ALTER TABLE users MODIFY username VARCHAR(190) NOT NULL');
-    } catch (PDOException $exception) {
-        // Some shared hosts restrict ALTER MODIFY; new installs use database.sql.
-    }
-
-    try {
-        $pdo->exec('CREATE UNIQUE INDEX idx_users_phone ON users (phone)');
-    } catch (PDOException $exception) {
-        // Index already exists or legacy data prevents it; login still checks allowed phones.
-    }
+    authExecQuietly('ALTER TABLE users MODIFY username VARCHAR(190) NOT NULL');
+    authExecQuietly('CREATE UNIQUE INDEX idx_users_email ON users (email)');
 
     $done = true;
 }
 
-function authFindUserByPhone($phone)
+function ensureAdminUser()
 {
     global $pdo;
     ensureAuthSchema();
 
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE phone = :phone OR username = :phone LIMIT 1');
-    $stmt->execute(['phone' => normalizePhone($phone)]);
-    $user = $stmt->fetch();
-    if ($user && empty($user['phone'])) {
-        $update = $pdo->prepare('UPDATE users SET phone = :phone, is_phone_verified = 1 WHERE id = :id');
-        $update->execute(['phone' => normalizePhone($phone), 'id' => $user['id']]);
-        $user['phone'] = normalizePhone($phone);
-        $user['is_phone_verified'] = 1;
-    }
-    return $user;
-}
-
-function authCreateAllowedPhoneUser($phone, $firebaseUid = null)
-{
-    global $pdo;
-    ensureAuthSchema();
-
-    $phone = normalizePhone($phone);
-    $existing = authFindUserByPhone($phone);
-    if ($existing) {
-        if ($firebaseUid && ($existing['firebase_uid'] ?? '') !== $firebaseUid) {
-            $stmt = $pdo->prepare('UPDATE users SET firebase_uid = :firebase_uid, is_phone_verified = 1 WHERE id = :id');
-            $stmt->execute(['firebase_uid' => $firebaseUid, 'id' => $existing['id']]);
-            $existing['firebase_uid'] = $firebaseUid;
-            $existing['is_phone_verified'] = 1;
-        }
-        return $existing;
-    }
-
-    $randomPassword = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("INSERT INTO users (username, phone, password, fullname, is_phone_verified, status, firebase_uid) VALUES (:username, :phone, :password, :fullname, 1, 'active', :firebase_uid)");
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username OR email = :email ORDER BY id ASC LIMIT 1');
     $stmt->execute([
-        'username' => $phone,
-        'phone' => $phone,
-        'password' => $randomPassword,
-        'fullname' => 'Authorized User',
-        'firebase_uid' => $firebaseUid,
+        'username' => ADMIN_LOGIN_USER,
+        'email' => ADMIN_LOGIN_EMAIL,
     ]);
+    $user = $stmt->fetch();
 
-    return authFindUserByPhone($phone);
-}
-
-function firebaseLookupIdToken($idToken)
-{
-    $url = 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . rawurlencode(FIREBASE_API_KEY);
-    $payload = json_encode(['idToken' => $idToken]);
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 15,
+    if ($user) {
+        $update = $pdo->prepare("UPDATE users SET username = :username, email = :email, password = :password, fullname = :fullname, email_verified_at = COALESCE(email_verified_at, NOW()), status = 'active' WHERE id = :id");
+        $update->execute([
+            'username' => ADMIN_LOGIN_USER,
+            'email' => ADMIN_LOGIN_EMAIL,
+            'password' => ADMIN_PASSWORD_HASH,
+            'fullname' => 'Administrator',
+            'id' => $user['id'],
         ]);
-        $response = curl_exec($ch);
-        curl_close($ch);
     } else {
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/json\r\n",
-                'content' => $payload,
-                'timeout' => 15,
-                'ignore_errors' => true,
-            ],
+        $insert = $pdo->prepare("INSERT INTO users (username, email, password, fullname, email_verified_at, status) VALUES (:username, :email, :password, :fullname, NOW(), 'active')");
+        $insert->execute([
+            'username' => ADMIN_LOGIN_USER,
+            'email' => ADMIN_LOGIN_EMAIL,
+            'password' => ADMIN_PASSWORD_HASH,
+            'fullname' => 'Administrator',
         ]);
-        $response = @file_get_contents($url, false, $context);
     }
 
-    if ($response === false || $response === null) {
-        return null;
-    }
-
-    $data = json_decode($response, true);
-    if (empty($data['users'][0])) {
-        return null;
-    }
-
-    return $data['users'][0];
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
+    $stmt->execute(['username' => ADMIN_LOGIN_USER]);
+    return $stmt->fetch();
 }
 
-function loginWithFirebaseToken($idToken)
+function loginUser($username, $password, $remember = false)
 {
     global $pdo;
-    ensureAuthSchema();
+    $username = trim((string)$username);
+    $password = (string)$password;
 
-    $idToken = trim((string)$idToken);
-    if ($idToken === '') {
-        return ['ok' => false, 'message' => 'Missing Firebase login token.'];
+    if ($username === '' || $password === '') {
+        return ['ok' => false, 'message' => 'Please enter your user ID and password.'];
     }
 
-    $firebaseUser = firebaseLookupIdToken($idToken);
-    if (!$firebaseUser || empty($firebaseUser['phoneNumber'])) {
-        return ['ok' => false, 'message' => 'Unable to verify Firebase phone login.'];
+    if (!hash_equals(ADMIN_LOGIN_USER, $username)) {
+        return ['ok' => false, 'message' => 'Invalid user ID or password.'];
     }
 
-    $phone = normalizePhone($firebaseUser['phoneNumber']);
-    if (!isAllowedOtpPhone($phone)) {
-        return ['ok' => false, 'message' => 'This phone number is not authorized for login.'];
-    }
-
-    $user = authCreateAllowedPhoneUser($phone, $firebaseUser['localId'] ?? null);
+    $user = ensureAdminUser();
     if (!$user || ($user['status'] ?? 'active') !== 'active') {
         return ['ok' => false, 'message' => 'This account is disabled.'];
     }
 
-    $stmt = $pdo->prepare('UPDATE users SET is_phone_verified = 1, last_login_at = NOW() WHERE id = :id');
-    $stmt->execute(['id' => $user['id']]);
+    if (($user['email'] ?? '') !== ADMIN_LOGIN_EMAIL || empty($user['email_verified_at'])) {
+        return ['ok' => false, 'message' => 'The admin email is not verified.'];
+    }
+
+    if (!password_verify($password, ADMIN_PASSWORD_HASH)) {
+        return ['ok' => false, 'message' => 'Invalid user ID or password.'];
+    }
 
     session_regenerate_id(true);
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['fullname'] = $user['fullname'];
-    $_SESSION['phone'] = $phone;
+    setAuthSession($user);
+
+    $stmt = $pdo->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id');
+    $stmt->execute(['id' => $user['id']]);
+
+    if ($remember) {
+        setRememberToken((int)$user['id']);
+    } else {
+        clearRememberCookie();
+    }
 
     return ['ok' => true, 'message' => 'Login successful.'];
 }
 
+function setAuthSession($user)
+{
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['fullname'] = $user['fullname'];
+    $_SESSION['email'] = $user['email'] ?? ADMIN_LOGIN_EMAIL;
+}
+
+function rememberCookieOptions($expires)
+{
+    $secureCookie = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? '') == 443;
+    return [
+        'expires' => $expires,
+        'path' => '/',
+        'secure' => $secureCookie,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+}
+
+function setRememberToken($userId)
+{
+    global $pdo;
+
+    $token = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $token);
+    $expires = time() + (REMEMBER_DAYS * 86400);
+    $expiresAt = date('Y-m-d H:i:s', $expires);
+
+    $stmt = $pdo->prepare('UPDATE users SET remember_token_hash = :token_hash, remember_token_expires_at = :expires_at WHERE id = :id');
+    $stmt->execute([
+        'token_hash' => $tokenHash,
+        'expires_at' => $expiresAt,
+        'id' => $userId,
+    ]);
+
+    setcookie(REMEMBER_COOKIE_NAME, $userId . ':' . $token, rememberCookieOptions($expires));
+}
+
+function loginFromRememberCookie()
+{
+    global $pdo;
+    if (empty($_COOKIE[REMEMBER_COOKIE_NAME])) {
+        return false;
+    }
+
+    ensureAuthSchema();
+    $parts = explode(':', $_COOKIE[REMEMBER_COOKIE_NAME], 2);
+    if (count($parts) !== 2 || !ctype_digit($parts[0]) || $parts[1] === '') {
+        clearRememberCookie();
+        return false;
+    }
+
+    [$userId, $token] = $parts;
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id AND username = :username AND email = :email AND status = 'active' LIMIT 1");
+    $stmt->execute([
+        'id' => (int)$userId,
+        'username' => ADMIN_LOGIN_USER,
+        'email' => ADMIN_LOGIN_EMAIL,
+    ]);
+    $user = $stmt->fetch();
+
+    if (!$user || empty($user['remember_token_hash']) || empty($user['remember_token_expires_at'])) {
+        clearRememberCookie();
+        return false;
+    }
+
+    if (strtotime($user['remember_token_expires_at']) < time()) {
+        clearRememberToken((int)$user['id']);
+        return false;
+    }
+
+    if (!hash_equals($user['remember_token_hash'], hash('sha256', $token))) {
+        clearRememberCookie();
+        return false;
+    }
+
+    session_regenerate_id(true);
+    setAuthSession($user);
+    setRememberToken((int)$user['id']);
+    return true;
+}
+
+function clearRememberCookie()
+{
+    setcookie(REMEMBER_COOKIE_NAME, '', rememberCookieOptions(time() - 3600));
+}
+
+function clearRememberToken($userId)
+{
+    global $pdo;
+    $stmt = $pdo->prepare('UPDATE users SET remember_token_hash = NULL, remember_token_expires_at = NULL WHERE id = :id');
+    $stmt->execute(['id' => $userId]);
+    clearRememberCookie();
+}
+
 function logoutUser()
 {
+    if (!empty($_SESSION['user_id'])) {
+        clearRememberToken((int)$_SESSION['user_id']);
+    } else {
+        clearRememberCookie();
+    }
+
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();

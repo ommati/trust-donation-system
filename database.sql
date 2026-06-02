@@ -6,17 +6,18 @@ USE trust_donation;
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(190) NOT NULL UNIQUE,
-    phone VARCHAR(20) NULL UNIQUE,
+    email VARCHAR(190) NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     fullname VARCHAR(100) NOT NULL,
-    is_phone_verified TINYINT(1) NOT NULL DEFAULT 0,
+    email_verified_at DATETIME NULL,
     status ENUM('active','disabled') NOT NULL DEFAULT 'active',
-    firebase_uid VARCHAR(128) NULL,
+    remember_token_hash VARCHAR(255) NULL,
+    remember_token_expires_at DATETIME NULL,
     last_login_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Authorized users login with Firebase phone OTP. No default password user is included.
+-- The admin user is created/updated automatically from includes/config.php or .env.php.
 
 CREATE TABLE IF NOT EXISTS donations (
     id INT AUTO_INCREMENT PRIMARY KEY,

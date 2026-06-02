@@ -60,26 +60,20 @@ if (!defined('TRUST_SIGNATURE')) {
     define('TRUST_SIGNATURE', 'images/signature2.jpg');
 }
 
-if (!defined('OTP_ALLOWED_PHONES')) {
-    define('OTP_ALLOWED_PHONES', serialize(['7506316144', '8583819442', '7003538078']));
+if (!defined('ADMIN_LOGIN_USER')) {
+    define('ADMIN_LOGIN_USER', 'admin');
 }
-if (!defined('FIREBASE_API_KEY')) {
-    define('FIREBASE_API_KEY', 'AIzaSyBDVrtTPtUXeVav1lHu__vFKFp7yTIRF1U');
+if (!defined('ADMIN_LOGIN_EMAIL')) {
+    define('ADMIN_LOGIN_EMAIL', 'bhaktivedantapreachingcentre@gmail.com');
 }
-if (!defined('FIREBASE_AUTH_DOMAIN')) {
-    define('FIREBASE_AUTH_DOMAIN', 'authentication-436c0.firebaseapp.com');
+if (!defined('ADMIN_PASSWORD_HASH')) {
+    define('ADMIN_PASSWORD_HASH', '$2y$10$4dv.JnIt8oRAkQCoSZgGP.RaIl7x2S5bwVhzeNO9j2y1dn/biaip6');
 }
-if (!defined('FIREBASE_PROJECT_ID')) {
-    define('FIREBASE_PROJECT_ID', 'authentication-436c0');
+if (!defined('REMEMBER_COOKIE_NAME')) {
+    define('REMEMBER_COOKIE_NAME', 'trust_remember');
 }
-if (!defined('FIREBASE_APP_ID')) {
-    define('FIREBASE_APP_ID', '1:228034766410:web:d35f352258c1b4e49a68b3');
-}
-if (!defined('FIREBASE_STORAGE_BUCKET')) {
-    define('FIREBASE_STORAGE_BUCKET', 'authentication-436c0.firebasestorage.app');
-}
-if (!defined('FIREBASE_MESSAGING_SENDER_ID')) {
-    define('FIREBASE_MESSAGING_SENDER_ID', '228034766410');
+if (!defined('REMEMBER_DAYS')) {
+    define('REMEMBER_DAYS', 30);
 }
 
 if (!defined('RECEIPT_PREFIX')) {
