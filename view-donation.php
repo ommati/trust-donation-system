@@ -28,14 +28,14 @@ require_once __DIR__ . '/includes/header.php';
                     <small class="text-muted">Receipt number <?php echo escape($donation['receipt_number']); ?></small>
                 </div>
                 <div class="btn-group">
-                    <a href="receipt.php?id=<?php echo $donation['id']; ?>" class="btn btn-primary">Receipt</a>
                     <?php if ($donation['status'] === 'cancelled'): ?>
+                        <button type="button" class="btn btn-secondary" disabled>Receipt unavailable</button>
                         <button type="button" class="btn btn-outline-secondary" disabled>PDF unavailable</button>
+                        <button type="button" class="btn btn-outline-secondary" disabled>Edit</button>
                     <?php else: ?>
+                        <a href="receipt.php?id=<?php echo $donation['id']; ?>" class="btn btn-primary">Receipt</a>
                         <a href="download-pdf.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-primary">PDF</a>
-                    <?php endif; ?>
-                    <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-secondary">Edit</a>
-                    <?php if ($donation['status'] === 'active'): ?>
+                        <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-secondary">Edit</a>
                         <a href="delete-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-outline-danger">Cancel Donation</a>
                     <?php endif; ?>
                 </div>

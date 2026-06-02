@@ -126,7 +126,11 @@ if (isset($_GET['notice']) && $_GET['notice'] === 'cancelled') {
                                     </td>
                                     <td class="text-end">
                                         <a href="view-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>
-                                        <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <?php if ($donation['status'] === 'cancelled'): ?>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" disabled>Edit</button>
+                                        <?php else: ?>
+                                            <a href="edit-donation.php?id=<?php echo $donation['id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-danger cancel-donation-btn" data-bs-toggle="modal" data-bs-target="#cancelDonationModal" data-id="<?php echo $donation['id']; ?>" data-receipt="<?php echo escape($donation['receipt_number']); ?>" data-donor="<?php echo escape($donation['donor_name']); ?>" <?php echo $donation['status'] !== 'active' ? 'disabled' : ''; ?>>Cancel Donation</button>
                                     </td>
                                 </tr>
