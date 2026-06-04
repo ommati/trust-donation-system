@@ -45,7 +45,7 @@ if (!defined('TRUST_REGISTRATION')) {
     define('TRUST_REGISTRATION', 'Registration No. 050100104/23');
 }
 if (!defined('ISKCON_REGISTRATION')) {
-    define('ISKCON_REGISTRATION', 'Iskcon Naamhatta Reg. No : 4039 (Howrah)');
+    define('ISKCON_REGISTRATION', '4039 (Howrah)');
 }
 if (!defined('TRUST_ADDRESS')) {
     define('TRUST_ADDRESS', 'Pratappur Krishnabati, Pantihal, West Bengal - 711410');

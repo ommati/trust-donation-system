@@ -30,7 +30,7 @@ require_once __DIR__ . '/includes/header.php';
                         <p class="mb-1 text-muted"><?php echo escape(TRUST_ADDRESS); ?></p>
                         <p class="mb-1 text-muted"><?php echo escape(TRUST_REGISTRATION); ?></p>
                         <?php if (defined('ISKCON_REGISTRATION') && ISKCON_REGISTRATION): ?>
-                        <p class="mb-0 text-muted"><?php echo escape(ISKCON_REGISTRATION); ?></p>
+                        <p class="mb-1 text-muted"><?php echo escape(ISKCON_REGISTRATION); ?></p>
                         <?php endif; ?>
                     </div>
                 </div>
