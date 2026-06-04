@@ -67,7 +67,7 @@ function buildReceiptHtml($donation)
     <meta charset="utf-8">
     <style>
         @page {
-            margin: 15mm 15mm;
+            margin: 12mm 15mm;
             size: A4 portrait;
         }
 
@@ -81,21 +81,16 @@ function buildReceiptHtml($donation)
             font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
             font-size: 12.5px;
             line-height: 1.42;
-            background: #fff7f0;
+            background: #fff;
         }
 
         .receipt {
             width: 100%;
         }
 
-        .logo-wrap {
-            margin: 0 0 8px;
-            text-align: center;
-        }
-
         .logo {
-            height: 68px;
-            width: 68px;
+            height: 70px;
+            width: 70px;
         }
 
         .title {
@@ -122,8 +117,23 @@ function buildReceiptHtml($donation)
             font-size: 22px;
             font-weight: 700;
             line-height: 1.22;
-            margin: 0 0 20px;
+            margin: 0 0 15px;
             text-align: center;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .logo-cell {
+            width: 80px;
+            vertical-align: top;
+        }
+
+        .header-text-cell {
+            vertical-align: top;
+            padding-left: 10px;
         }
 
         .top-table,
@@ -184,7 +194,7 @@ function buildReceiptHtml($donation)
 
         .divider {
             border-top: 2px solid #9a690f;
-            margin: 22px 0 21px;
+            margin: 18px 0;
         }
 
         .section-table td {
@@ -251,7 +261,7 @@ function buildReceiptHtml($donation)
         }
 
         .donation-table {
-            margin-top: 23px;
+            margin-top: 20px;
         }
 
         .donation-table th {
@@ -273,7 +283,7 @@ function buildReceiptHtml($donation)
             border-bottom: 2px solid #9a690f;
             color: #1a0e00;
             font-size: 12.5px;
-            padding: 13px 9px;
+            padding: 11px 9px;
             vertical-align: top;
         }
 
@@ -286,7 +296,7 @@ function buildReceiptHtml($donation)
         }
 
         .bottom-table {
-            margin-top: 22px;
+            margin-top: 18px;
         }
 
         .bottom-table td {
@@ -294,7 +304,7 @@ function buildReceiptHtml($donation)
         }
 
         .amount-words {
-            padding: 4px 30px 0 0;
+            padding: 0 20px 0 0;
             width: 55%;
         }
 
@@ -307,8 +317,8 @@ function buildReceiptHtml($donation)
             color: #9a690f;
             font-size: 12.5px;
             font-weight: 700;
-            margin: 0 0 10px;
-            padding-bottom: 7px;
+            margin: 0 0 8px;
+            padding-bottom: 5px;
             text-transform: uppercase;
         }
 
@@ -328,7 +338,7 @@ function buildReceiptHtml($donation)
         .summary td {
             border: 1px solid #9a690f;
             font-size: 13px;
-            padding: 11px 13px;
+            padding: 9px 13px;
         }
 
         .summary td:first-child {
@@ -347,11 +357,11 @@ function buildReceiptHtml($donation)
 
         .thank-you {
             font-style: italic;
-            margin: 28px 0 0;
+            margin: 20px 0 0;
         }
 
         .signature-area {
-            margin-top: 20px;
+            margin-top: 15px;
             text-align: right;
         }
 
@@ -396,7 +406,7 @@ function buildReceiptHtml($donation)
             border-top: 1.5px solid #9a690f;
             color: #291901;
             font-size: 11.5px;
-            margin-top: 22px;
+            margin-top: 18px;
             padding-top: 10px;
             text-align: center;
         }
@@ -404,12 +414,20 @@ function buildReceiptHtml($donation)
 </head>
 <body>
     <div class="receipt">
-        <?php if ($logo): ?>
-            <div class="logo-wrap"><img class="logo" src="<?php echo pdfEscape($logo); ?>" alt="Trust logo"></div>
-        <?php endif; ?>
-        <h1 class="title">Donation Receipt</h1>
-        <div class="ornament">&mdash;&mdash;&mdash;&mdash; &bull; &mdash;&mdash;&mdash;&mdash;</div>
-        <div class="trust-name"><?php echo pdfEscape(TRUST_NAME); ?></div>
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell">
+                    <?php if ($logo): ?>
+                        <img class="logo" src="<?php echo pdfEscape($logo); ?>" alt="Trust logo">
+                    <?php endif; ?>
+                </td>
+                <td class="header-text-cell">
+                    <h1 class="title">Donation Receipt</h1>
+                    <div class="ornament">&mdash;&mdash;&mdash;&mdash; &bull; &mdash;&mdash;&mdash;&mdash;</div>
+                    <div class="trust-name"><?php echo pdfEscape(TRUST_NAME); ?></div>
+                </td>
+            </tr>
+        </table>
 
         <table class="top-table">
             <tr>

@@ -54,7 +54,7 @@ if (!defined('AUTHORIZED_SIGNATORY')) {
     define('AUTHORIZED_SIGNATORY', 'Om Jagannath Das');
 }
 if (!defined('TRUST_LOGO')) {
-    define('TRUST_LOGO', 'images/logo.jpg');
+    define('TRUST_LOGO', 'images/logo.png');
 }
 if (!defined('TRUST_SIGNATURE')) {
     define('TRUST_SIGNATURE', 'images/signature2.jpg');
@@ -88,4 +88,3 @@ if (!defined('DEFAULT_PAYMENT_MODES')) {
 if (!defined('CSRF_TOKEN_NAME')) {
     define('CSRF_TOKEN_NAME', 'csrf_token');
 }
-
