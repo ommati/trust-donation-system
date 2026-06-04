@@ -62,10 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="card section-card">
             <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">Cancel Donation Receipt</h5>
+                <h1 class="section-title">Cancel Donation Receipt</h1>
             </div>
             <div class="card-body">
                 <?php if ($error): ?>
@@ -76,9 +76,9 @@ require_once __DIR__ . '/includes/header.php';
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
                     <div class="mb-3">
                         <label class="form-label" for="cancel_reason">Cancellation Reason</label>
-                        <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="3" required><?php echo escape($_POST['cancel_reason'] ?? ''); ?></textarea>
+                        <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="4" required><?php echo escape($_POST['cancel_reason'] ?? ''); ?></textarea>
                     </div>
-                    <div class="d-flex gap-2">
+                    <div class="form-actions form-actions-start">
                         <a href="<?php echo url('donations'); ?>" class="btn btn-secondary">Close</a>
                         <button type="submit" class="btn btn-danger">Confirm Cancel</button>
                     </div>

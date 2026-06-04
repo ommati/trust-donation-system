@@ -98,12 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="col-12 col-xl-11">
+        <div class="card section-card">
+            <div class="card-header card-header-responsive">
                 <div>
-                    <h5 class="mb-0">Edit Donation</h5>
-                    <small class="text-muted">Modify donation details for receipt <?php echo escape($donation['receipt_number']); ?>.</small>
+                    <h1 class="section-title">Edit Donation</h1>
+                    <p class="section-subtitle">Modify donation details for receipt <?php echo escape($donation['receipt_number']); ?>.</p>
                 </div>
                 <a href="<?php echo url('view-donation') . '?id=' . urlencode($id); ?>" class="btn btn-outline-secondary btn-sm">Back to Details</a>
             </div>
@@ -118,32 +118,32 @@ require_once __DIR__ . '/includes/header.php';
                 <?php endif; ?>
                 <form method="post" action="<?php echo url('edit-donation') . '?id=' . urlencode($id); ?>" data-prevent-duplicate>
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
-                    <div class="row gy-3">
-                        <div class="col-md-4">
+                    <div class="row g-3 g-lg-4">
+                        <div class="col-12 col-sm-6 col-lg-4">
                             <label class="form-label">Receipt Number</label>
                             <input type="text" class="form-control" value="<?php echo escape($donation['receipt_number']); ?>" readonly>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-sm-6 col-lg-4">
                             <label class="form-label" for="donation_date">Date</label>
                             <input type="date" class="form-control" id="donation_date" name="donation_date" value="<?php echo escape($values['donation_date']); ?>" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-lg-4">
                             <label class="form-label" for="donor_name">Donor Name</label>
                             <input type="text" class="form-control" id="donor_name" name="donor_name" value="<?php echo escape($values['donor_name']); ?>" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-sm-6 col-lg-4">
                             <label class="form-label" for="mobile">Mobile Number</label>
-                            <input type="text" class="form-control" id="mobile" name="mobile" value="<?php echo escape($values['mobile']); ?>">
+                            <input type="text" class="form-control" id="mobile" name="mobile" value="<?php echo escape($values['mobile']); ?>" inputmode="tel">
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-12 col-sm-6 col-lg-8">
                             <label class="form-label" for="address">Address</label>
                             <input type="text" class="form-control" id="address" name="address" value="<?php echo escape($values['address']); ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-sm-6 col-lg-4">
                             <label class="form-label" for="amount">Donation Amount</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="amount" name="amount" value="<?php echo escape($values['amount']); ?>" required>
+                            <input type="number" step="0.01" min="0" class="form-control" id="amount" name="amount" value="<?php echo escape($values['amount']); ?>" inputmode="decimal" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-sm-6 col-lg-4">
                             <label class="form-label" for="payment_mode">Payment Mode</label>
                             <select class="form-select" id="payment_mode" name="payment_mode">
                                 <?php foreach (getPaymentModes() as $mode): ?>
@@ -151,7 +151,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-lg-4">
                             <label class="form-label" for="purpose">Donation Purpose</label>
                             <input type="text" class="form-control" id="purpose" name="purpose" value="<?php echo escape($values['purpose']); ?>">
                         </div>
@@ -160,7 +160,7 @@ require_once __DIR__ . '/includes/header.php';
                             <textarea class="form-control" id="remarks" name="remarks" rows="3"><?php echo escape($values['remarks']); ?></textarea>
                         </div>
                     </div>
-                    <div class="mt-4 d-flex justify-content-between gap-2">
+                    <div class="form-actions form-actions-between">
                         <a href="<?php echo url('view-donation') . '?id=' . urlencode($id); ?>" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Update Donation</button>
                     </div>

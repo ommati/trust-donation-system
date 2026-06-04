@@ -20,14 +20,14 @@ if (!$donation) {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="col-12 col-xl-11">
+        <div class="card section-card">
+            <div class="card-header card-header-responsive">
                 <div>
-                    <h5 class="mb-0">Donation Details</h5>
-                    <small class="text-muted">Receipt number <?php echo escape($donation['receipt_number']); ?></small>
+                    <h1 class="section-title">Donation Details</h1>
+                    <p class="section-subtitle">Receipt number <?php echo escape($donation['receipt_number']); ?></p>
                 </div>
-                <div class="btn-group">
+                <div class="action-group">
                     <?php if ($donation['status'] === 'cancelled'): ?>
                         <button type="button" class="btn btn-secondary" disabled>Receipt unavailable</button>
                         <button type="button" class="btn btn-outline-secondary" disabled>PDF unavailable</button>
@@ -41,21 +41,21 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
             <div class="card-body">
-                <div class="row gy-3">
-                    <div class="col-md-4"><strong>Receipt Number</strong><p><?php echo escape($donation['receipt_number']); ?></p></div>
-                    <div class="col-md-4"><strong>Date</strong><p><?php echo escape($donation['donation_date']); ?></p></div>
-                    <div class="col-md-4"><strong>Payment Mode</strong><p><?php echo escape($donation['payment_mode']); ?></p></div>
-                    <div class="col-md-4"><strong>Status</strong><p><?php echo $donation['status'] === 'cancelled' ? '<span class="badge bg-secondary">Cancelled</span>' : '<span class="badge bg-success">Active</span>'; ?></p></div>
-                    <div class="col-md-4"><strong>Donor Name</strong><p><?php echo escape($donation['donor_name']); ?></p></div>
-                    <div class="col-md-6"><strong>Mobile Number</strong><p><?php echo escape($donation['mobile']); ?></p></div>
-                    <div class="col-12"><strong>Address</strong><p><?php echo nl2br(escape($donation['address'])); ?></p></div>
-                    <div class="col-md-4"><strong>Amount</strong><p><?php echo formatCurrency($donation['amount']); ?></p></div>
-                    <div class="col-md-8"><strong>Purpose</strong><p><?php echo escape($donation['purpose']); ?></p></div>
-                    <div class="col-12"><strong>Remarks</strong><p><?php echo nl2br(escape($donation['remarks'])); ?></p></div>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Receipt Number</strong><p><?php echo escape($donation['receipt_number']); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Date</strong><p><?php echo escape($donation['donation_date']); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Payment Mode</strong><p><?php echo escape($donation['payment_mode']); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Status</strong><p><?php echo $donation['status'] === 'cancelled' ? '<span class="badge bg-secondary">Cancelled</span>' : '<span class="badge bg-success">Active</span>'; ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Donor Name</strong><p><?php echo escape($donation['donor_name']); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Mobile Number</strong><p><?php echo escape($donation['mobile']); ?></p></div></div>
+                    <div class="col-12"><div class="detail-item"><strong>Address</strong><p><?php echo nl2br(escape($donation['address'])); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Amount</strong><p><?php echo formatCurrency($donation['amount']); ?></p></div></div>
+                    <div class="col-12 col-sm-6 col-lg-8"><div class="detail-item"><strong>Purpose</strong><p><?php echo escape($donation['purpose']); ?></p></div></div>
+                    <div class="col-12"><div class="detail-item"><strong>Remarks</strong><p><?php echo nl2br(escape($donation['remarks'])); ?></p></div></div>
                     <?php if ($donation['status'] === 'cancelled'): ?>
-                        <div class="col-md-4"><strong>Cancelled At</strong><p><?php echo escape($donation['cancelled_at']); ?></p></div>
-                        <div class="col-md-4"><strong>Cancelled By</strong><p><?php echo escape($donation['cancelled_by']); ?></p></div>
-                        <div class="col-md-4"><strong>Cancel Reason</strong><p><?php echo nl2br(escape($donation['cancel_reason'])); ?></p></div>
+                        <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Cancelled At</strong><p><?php echo escape($donation['cancelled_at']); ?></p></div></div>
+                        <div class="col-12 col-sm-6 col-lg-4"><div class="detail-item"><strong>Cancelled By</strong><p><?php echo escape($donation['cancelled_by']); ?></p></div></div>
+                        <div class="col-12 col-lg-4"><div class="detail-item"><strong>Cancel Reason</strong><p><?php echo nl2br(escape($donation['cancel_reason'])); ?></p></div></div>
                     <?php endif; ?>
                 </div>
             </div>

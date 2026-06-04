@@ -52,12 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white text-center py-3">
-                <h4 class="mb-0">Verify Login Code</h4>
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card auth-card">
+            <div class="card-header bg-primary text-white text-center">
+                <h1 class="h4 mb-0">Verify Login Code</h1>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 <?php if ($noticeMessage): ?>
                     <?php echo showAlert($noticeMessage, 'success'); ?>
                 <?php endif; ?>
@@ -65,14 +65,14 @@ require_once __DIR__ . '/includes/header.php';
                     <?php echo showAlert($loginError, 'danger'); ?>
                 <?php endif; ?>
 
-                <p>Please enter the 6-digit code sent to your verified admin email address.</p>
+                <p class="mb-4">Please enter the 6-digit code sent to your verified admin email address.</p>
 
                 <form method="post" autocomplete="off">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="otp" class="form-label">One-time code</label>
-                        <input type="text" class="form-control" id="otp" name="otp" maxlength="6" required pattern="\d{6}" autocomplete="one-time-code" autofocus>
+                        <input type="text" class="form-control otp-input" id="otp" name="otp" maxlength="6" required pattern="\d{6}" inputmode="numeric" autocomplete="one-time-code" autofocus>
                     </div>
 
                     <div class="d-grid mb-2">

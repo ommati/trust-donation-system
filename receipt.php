@@ -20,34 +20,34 @@ if (!$donation) {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-xl-8 col-lg-10">
-        <div class="receipt-box shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+    <div class="col-12 col-lg-10 col-xl-8">
+        <div class="receipt-box mb-4">
+            <div class="receipt-header">
                 <div>
                     <h4 class="mb-1"><?php echo escape(TRUST_NAME); ?></h4>
                     <p class="mb-1 text-muted"><?php echo escape(TRUST_ADDRESS); ?></p>
                     <p class="mb-0 text-muted"><?php echo escape(TRUST_REGISTRATION); ?></p>
                 </div>
-                <div class="text-end">
+                <div class="receipt-meta">
                     <h6 class="text-uppercase text-primary mb-1">Donation Receipt</h6>
                     <p class="mb-0"><strong>Receipt No:</strong> <?php echo escape($donation['receipt_number']); ?></p>
                     <p class="mb-0"><strong>Date:</strong> <?php echo escape($donation['donation_date']); ?></p>
                 </div>
             </div>
-            <div class="row gy-3">
-                <div class="col-sm-6">
+            <div class="row g-3 receipt-details">
+                <div class="col-12 col-sm-6">
                     <p class="mb-1"><strong>Donor Name:</strong></p>
                     <p><?php echo escape($donation['donor_name']); ?></p>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-12 col-sm-6">
                     <p class="mb-1"><strong>Payment Mode:</strong></p>
                     <p><?php echo escape($donation['payment_mode']); ?></p>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-12 col-sm-6">
                     <p class="mb-1"><strong>Amount (Figures):</strong></p>
                     <p><?php echo formatCurrency($donation['amount']); ?></p>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-12 col-sm-6">
                     <p class="mb-1"><strong>Purpose:</strong></p>
                     <p><?php echo escape($donation['purpose']); ?></p>
                 </div>
@@ -66,19 +66,19 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <div class="mt-5 pt-3 border-top">
                 <div class="row justify-content-end">
-                    <div class="col-md-6 col-lg-4 text-end">
+                    <div class="col-12 col-sm-7 col-lg-5 receipt-signature">
                         <p class="mb-2 small text-muted">Authorized Signatory</p>
                         <?php 
                         $sigPath = __DIR__ . '/' . TRUST_SIGNATURE;
                         if (file_exists($sigPath)) {
-                            echo '<img src="' . escape(TRUST_SIGNATURE) . '" alt="Signature" style="max-width: 150px; max-height: 60px; margin: 5px 0;" class="d-block ms-auto">';
+                            echo '<img src="' . escape(TRUST_SIGNATURE) . '" alt="Signature" class="receipt-signature-image">';
                         }
                         ?>
                         <div class="border-top pt-2 mt-2"><?php echo escape(AUTHORIZED_SIGNATORY); ?></div>
                     </div>
                 </div>
             </div>
-            <div class="mt-4 d-flex gap-2 justify-content-center">
+            <div class="action-group receipt-actions">
                 <a class="btn btn-outline-secondary" href="<?php echo url('download-pdf') . '?id=' . urlencode($donation['id']); ?>">Download PDF</a>
                 <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
             </div>

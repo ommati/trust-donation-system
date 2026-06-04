@@ -42,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="card section-card">
             <div class="card-header">
-                <h5 class="mb-0">Google Sheets Connection Test</h5>
+                <h1 class="section-title">Google Sheets Connection Test</h1>
             </div>
             <div class="card-body">
                 <?php foreach ($errors as $error): ?>
@@ -56,7 +56,9 @@ require_once __DIR__ . '/includes/header.php';
                 <?php endforeach; ?>
                 <form method="post">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
-                    <button type="submit" class="btn btn-primary">Run Sheets Test</button>
+                    <div class="d-grid d-sm-block">
+                        <button type="submit" class="btn btn-primary">Run Sheets Test</button>
+                    </div>
                 </form>
                 <p class="mt-3 text-muted">If this test fails, check <code>logs/google-sync.log</code> and verify your service account JSON and spreadsheet sharing.</p>
             </div>
