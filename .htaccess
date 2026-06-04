@@ -3,12 +3,13 @@
     RewriteEngine On
 
     # Set base path for clean URLs
-    # For /trust-donation-system/ use: RewriteBase /trust-donation-system/
-    # For root use: RewriteBase /
-    RewriteBase /trust-donation-system/
+    RewriteBase /admin-panel/
 
     # Disable directory listing
     Options -Indexes
+
+    # Block direct web access to application internals
+    RewriteRule ^(?:vendor|includes)(?:/|$) - [F,L,NC]
 
     # Don't rewrite real files or directories
     RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -41,11 +42,6 @@
 <FilesMatch "^(composer\.(json|lock)|composer\.phar|database\.sql|\.htaccess|\.env)$">
   Require all denied
 </FilesMatch>
-
-# Block vendor and includes directories from web access
-<DirectoryMatch "^.*(vendor|includes)">
-    Require all denied
-</DirectoryMatch>
 
 # PHP configuration
 <IfModule mod_php.c>
