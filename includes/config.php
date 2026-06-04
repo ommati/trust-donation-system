@@ -54,7 +54,7 @@ if (!defined('AUTHORIZED_SIGNATORY')) {
     define('AUTHORIZED_SIGNATORY', 'Om Jagannath Das');
 }
 if (!defined('TRUST_LOGO')) {
-    define('TRUST_LOGO', 'images/logo.png');
+    define('TRUST_LOGO', 'images/logo.jpg');
 }
 if (!defined('TRUST_SIGNATURE')) {
     define('TRUST_SIGNATURE', 'images/signature2.jpg');

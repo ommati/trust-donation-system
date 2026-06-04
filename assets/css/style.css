@@ -96,6 +96,9 @@ a:hover {
 }
 
 .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     color: var(--cream) !important;
     max-width: calc(100% - 4.25rem);
     margin-right: 0.75rem;
@@ -103,6 +106,15 @@ a:hover {
     letter-spacing: 0.01em;
     line-height: 1.25;
     white-space: normal;
+}
+
+.navbar-brand-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    object-fit: cover;
+    border: 1px solid rgba(255, 247, 240, 0.25);
+    border-radius: 0.55rem;
 }
 
 .navbar-brand-text {
@@ -673,6 +685,21 @@ code {
     overflow-wrap: anywhere;
 }
 
+.receipt-trust {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.receipt-logo {
+    width: 4rem;
+    height: 4rem;
+    flex: 0 0 auto;
+    object-fit: cover;
+    border-radius: 0.65rem;
+}
+
 .receipt-meta,
 .receipt-signature {
     text-align: left;
@@ -928,6 +955,11 @@ footer .text-muted {
     .navbar-brand {
         max-width: min(32vw, 30rem);
         margin-right: 1.5rem;
+    }
+
+    .navbar-brand-logo {
+        width: 2.85rem;
+        height: 2.85rem;
     }
 
     .navbar .nav-link {

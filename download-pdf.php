@@ -56,6 +56,7 @@ function buildReceiptHtml($donation)
     $amount = (float)($donation['amount'] ?? 0);
     $amountFormatted = pdfAmount($amount);
     $contact = defined('TRUST_CONTACT') ? pdfClean(TRUST_CONTACT) : '-';
+    $logo = assetDataUri(TRUST_LOGO);
     $signature = assetDataUri(TRUST_SIGNATURE);
 
     ob_start();
@@ -76,19 +77,29 @@ function buildReceiptHtml($donation)
 
         body {
             margin: 0;
-            color: #172033;
+            color: #1a0e00;
             font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
             font-size: 12.5px;
             line-height: 1.42;
-            background: #ffffff;
+            background: #fff7f0;
         }
 
         .receipt {
             width: 100%;
         }
 
+        .logo-wrap {
+            margin: 0 0 8px;
+            text-align: center;
+        }
+
+        .logo {
+            height: 68px;
+            width: 68px;
+        }
+
         .title {
-            color: #073b78;
+            color: #291901;
             font-size: 31px;
             font-weight: 700;
             letter-spacing: 1.4px;
@@ -99,7 +110,7 @@ function buildReceiptHtml($donation)
         }
 
         .ornament {
-            color: #7f9bc2;
+            color: #9a690f;
             font-size: 11px;
             letter-spacing: 4px;
             margin: 7px 0 10px;
@@ -107,7 +118,7 @@ function buildReceiptHtml($donation)
         }
 
         .trust-name {
-            color: #073b78;
+            color: #291901;
             font-size: 22px;
             font-weight: 700;
             line-height: 1.22;
@@ -129,19 +140,20 @@ function buildReceiptHtml($donation)
         }
 
         .trust-meta {
-            color: #263145;
+            color: #291901;
             font-size: 12.5px;
             padding: 4px 26px 0 0;
             width: 52%;
         }
 
         .trust-meta strong {
-            color: #172033;
+            color: #1a0e00;
             font-weight: 700;
         }
 
         .info-box {
-            border: 1px solid #b9c9df;
+            background: #fff7f0;
+            border: 1px solid #9a690f;
             border-radius: 3px;
             padding: 13px 15px;
             width: 48%;
@@ -159,19 +171,19 @@ function buildReceiptHtml($donation)
         }
 
         .info-label {
-            color: #073b78;
+            color: #9a690f;
             font-weight: 700;
             width: 43%;
         }
 
         .colon {
-            color: #516176;
+            color: #291901;
             text-align: center;
             width: 8%;
         }
 
         .divider {
-            border-top: 2px solid #1e5d9d;
+            border-top: 2px solid #9a690f;
             margin: 22px 0 21px;
         }
 
@@ -189,7 +201,7 @@ function buildReceiptHtml($donation)
         }
 
         .section-heading {
-            color: #073b78;
+            color: #9a690f;
             font-size: 13.5px;
             font-weight: 700;
             margin: 0 0 13px;
@@ -197,9 +209,9 @@ function buildReceiptHtml($donation)
         }
 
         .icon {
-            background: #073b78;
+            background: #291901;
             border-radius: 50%;
-            color: #ffffff;
+            color: #fff7f0;
             display: inline-block;
             font-size: 9px;
             font-weight: 700;
@@ -221,19 +233,19 @@ function buildReceiptHtml($donation)
         }
 
         .field-label {
-            color: #172033;
+            color: #1a0e00;
             font-weight: 700;
             width: 34%;
         }
 
         .field-colon {
-            color: #516176;
+            color: #291901;
             text-align: center;
             width: 8%;
         }
 
         .field-value {
-            color: #172033;
+            color: #1a0e00;
             width: 58%;
             word-wrap: break-word;
         }
@@ -243,9 +255,9 @@ function buildReceiptHtml($donation)
         }
 
         .donation-table th {
-            background: #073b78;
-            border-right: 1px solid #2a619a;
-            color: #ffffff;
+            background: #291901;
+            border-right: 1px solid #9a690f;
+            color: #fff7f0;
             font-size: 11.5px;
             font-weight: 700;
             padding: 10px 9px;
@@ -258,8 +270,8 @@ function buildReceiptHtml($donation)
         }
 
         .donation-table td {
-            border-bottom: 2px solid #1e5d9d;
-            color: #172033;
+            border-bottom: 2px solid #9a690f;
+            color: #1a0e00;
             font-size: 12.5px;
             padding: 13px 9px;
             vertical-align: top;
@@ -291,8 +303,8 @@ function buildReceiptHtml($donation)
         }
 
         .small-heading {
-            border-bottom: 1px dashed #9eb3cd;
-            color: #073b78;
+            border-bottom: 1px dashed #9a690f;
+            color: #9a690f;
             font-size: 12.5px;
             font-weight: 700;
             margin: 0 0 10px;
@@ -301,7 +313,7 @@ function buildReceiptHtml($donation)
         }
 
         .words-text {
-            color: #172033;
+            color: #1a0e00;
             font-size: 13.5px;
             line-height: 1.55;
             margin: 0;
@@ -314,21 +326,21 @@ function buildReceiptHtml($donation)
         }
 
         .summary td {
-            border: 1px solid #c9d6e8;
+            border: 1px solid #9a690f;
             font-size: 13px;
             padding: 11px 13px;
         }
 
         .summary td:first-child {
-            color: #073b78;
+            color: #9a690f;
             font-weight: 700;
             text-transform: uppercase;
         }
 
         .summary .amount-cell {
-            background: #073b78;
-            border-color: #073b78;
-            color: #ffffff;
+            background: #291901;
+            border-color: #291901;
+            color: #fff7f0;
             font-size: 15px;
             font-weight: 700;
         }
@@ -350,7 +362,7 @@ function buildReceiptHtml($donation)
         }
 
         .signature-title {
-            color: #073b78;
+            color: #9a690f;
             font-size: 13.5px;
             font-weight: 700;
             margin-bottom: 7px;
@@ -364,7 +376,7 @@ function buildReceiptHtml($donation)
         }
 
         .signature-line {
-            border-top: 1.5px solid #073b78;
+            border-top: 1.5px solid #9a690f;
             margin: 0 auto 5px;
             width: 210px;
         }
@@ -375,14 +387,14 @@ function buildReceiptHtml($donation)
         }
 
         .signatory-role {
-            color: #516176;
+            color: #291901;
             font-size: 11.5px;
             margin-top: 2px;
         }
 
         .footer {
-            border-top: 1.5px solid #1e5d9d;
-            color: #263145;
+            border-top: 1.5px solid #9a690f;
+            color: #291901;
             font-size: 11.5px;
             margin-top: 22px;
             padding-top: 10px;
@@ -392,6 +404,9 @@ function buildReceiptHtml($donation)
 </head>
 <body>
     <div class="receipt">
+        <?php if ($logo): ?>
+            <div class="logo-wrap"><img class="logo" src="<?php echo pdfEscape($logo); ?>" alt="Trust logo"></div>
+        <?php endif; ?>
         <h1 class="title">Donation Receipt</h1>
         <div class="ornament">&mdash;&mdash;&mdash;&mdash; &bull; &mdash;&mdash;&mdash;&mdash;</div>
         <div class="trust-name"><?php echo pdfEscape(TRUST_NAME); ?></div>
@@ -547,7 +562,7 @@ if (!$donation) {
 
 if (!empty($donation['status']) && $donation['status'] === 'cancelled') {
     http_response_code(403);
-    echo '<!doctype html><html><head><meta charset="utf-8"><title>Receipt disabled</title></head><body><div style="max-width:640px;margin:2rem auto;padding:1.5rem;border:1px solid #ccc;border-radius:8px;font-family:Arial,Helvetica,sans-serif;"><h1 style="margin-top:0;color:#b02a37;">Receipt download disabled</h1><p>The donation receipt cannot be downloaded because this donation has been cancelled.</p><p><a href="' . htmlspecialchars(url('view-donation') . '?id=' . urlencode($donation['id']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Back to donation details</a></p></div></body></html>';
+    echo '<!doctype html><html><head><meta charset="utf-8"><title>Receipt disabled</title></head><body style="margin:0;background:#fff7f0;color:#1a0e00;"><div style="max-width:640px;margin:2rem auto;padding:1.5rem;border:1px solid #9a690f;border-radius:8px;font-family:Arial,Helvetica,sans-serif;"><h1 style="margin-top:0;color:#291901;">Receipt download disabled</h1><p>The donation receipt cannot be downloaded because this donation has been cancelled.</p><p><a style="color:#9a690f;" href="' . htmlspecialchars(url('view-donation') . '?id=' . urlencode($donation['id']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Back to donation details</a></p></div></body></html>';
     exit;
 }
 

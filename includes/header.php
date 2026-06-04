@@ -16,6 +16,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? '', '.php');
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" aria-label="Main navigation">
     <div class="container-xxl">
         <a class="navbar-brand" href="<?php echo url('dashboard'); ?>">
+            <img class="navbar-brand-logo" src="<?php echo escape(TRUST_LOGO); ?>" alt="">
             <span class="navbar-brand-text"><?php echo escape(TRUST_NAME); ?></span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

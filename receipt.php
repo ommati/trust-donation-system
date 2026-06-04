@@ -23,10 +23,13 @@ require_once __DIR__ . '/includes/header.php';
     <div class="col-12 col-lg-10 col-xl-8">
         <div class="receipt-box mb-4">
             <div class="receipt-header">
-                <div>
-                    <h4 class="mb-1"><?php echo escape(TRUST_NAME); ?></h4>
-                    <p class="mb-1 text-muted"><?php echo escape(TRUST_ADDRESS); ?></p>
-                    <p class="mb-0 text-muted"><?php echo escape(TRUST_REGISTRATION); ?></p>
+                <div class="receipt-trust">
+                    <img class="receipt-logo" src="<?php echo escape(TRUST_LOGO); ?>" alt="">
+                    <div>
+                        <h4 class="mb-1"><?php echo escape(TRUST_NAME); ?></h4>
+                        <p class="mb-1 text-muted"><?php echo escape(TRUST_ADDRESS); ?></p>
+                        <p class="mb-0 text-muted"><?php echo escape(TRUST_REGISTRATION); ?></p>
+                    </div>
                 </div>
                 <div class="receipt-meta">
                     <h6 class="text-uppercase text-primary mb-1">Donation Receipt</h6>
