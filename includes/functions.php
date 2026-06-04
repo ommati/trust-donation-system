@@ -22,12 +22,25 @@ function basePath()
 
 function url($path = '')
 {
-    $path = trim((string)$path, '/');
+    $path = trim((string)$path);
     $base = basePath();
     if ($path === '') {
         return $base === '' ? '/' : $base . '/';
     }
-    return $base . '/' . $path;
+
+    $suffix = '';
+    if (preg_match('/[?#]/', $path, $match, PREG_OFFSET_CAPTURE)) {
+        $suffixPosition = $match[0][1];
+        $suffix = substr($path, $suffixPosition);
+        $path = substr($path, 0, $suffixPosition);
+    }
+
+    $path = trim($path, '/');
+    if ($path !== '' && !preg_match('/\.[a-z0-9]+$/i', $path)) {
+        $path .= '.php';
+    }
+
+    return $base . '/' . $path . $suffix;
 }
 
 function redirect($url)

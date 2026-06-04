@@ -2,9 +2,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Set base path for clean URLs
-    RewriteBase /admin-panel/
-
     # Disable directory listing
     Options -Indexes
 
@@ -16,14 +13,8 @@
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Redirect .php URLs to clean URLs (301 permanent redirect for SEO)
-    # /verify-otp.php -> /verify-otp
-    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([a-z0-9-]+)\.php
-    RewriteRule ^([a-z0-9-]+)\.php$ $1 [R=301,L]
-
-    # Rewrite clean URLs to .php files
-    # Matches: /page-name or /page-name/ -> page-name.php
-    # Query strings are preserved with QSA flag
+    # Support clean URLs when the parent website allows them. Application
+    # links use real PHP files so parent WordPress rewrites cannot intercept.
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^([a-z0-9-]+)/?$ $1.php [QSA,L]
 </IfModule>
