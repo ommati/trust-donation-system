@@ -42,7 +42,10 @@ if (!defined('TRUST_NAME')) {
     define('TRUST_NAME', 'Sri Sri Radha Madhav Naamhatta Sangha Charitable & Welfare Trust');
 }
 if (!defined('TRUST_REGISTRATION')) {
-    define('TRUST_REGISTRATION', 'Registration No. 05010010423');
+    define('TRUST_REGISTRATION', 'Registration No. 050100104/23');
+}
+if (!defined('ISKCON_REGISTRATION')) {
+    define('ISKCON_REGISTRATION', 'Iskcon Naamhatta Reg. No : 4039 (Howrah)');
 }
 if (!defined('TRUST_ADDRESS')) {
     define('TRUST_ADDRESS', 'Pratappur Krishnabati, Panihati, West Bengal - 711410');

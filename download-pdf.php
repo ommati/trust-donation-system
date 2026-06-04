@@ -435,6 +435,9 @@ function buildReceiptHtml($donation)
                     <strong>Address:</strong><br>
                     <?php echo pdfEscape(TRUST_ADDRESS); ?><br>
                     <strong>Registration No.:</strong> <?php echo pdfEscape(preg_replace('/^Registration No\.\s*/i', '', TRUST_REGISTRATION)); ?><br>
+                    <?php if (defined('ISKCON_REGISTRATION') && ISKCON_REGISTRATION): ?>
+                        <?php echo pdfEscape(ISKCON_REGISTRATION); ?><br>
+                    <?php endif; ?>
                     <strong>Contact No.:</strong> <?php echo pdfEscape($contact ?: '-'); ?>
                 </td>
                 <td class="info-box">
