@@ -25,6 +25,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="receipt-header">
                 <div class="receipt-trust">
                     <img class="receipt-logo" src="<?php echo escape(TRUST_LOGO); ?>" alt="">
+                    <img class="receipt-logo" src="images/logo 2.png" alt="Trust Logo">
                     <div>
                         <h4 class="mb-1"><?php echo escape(TRUST_NAME); ?></h4>
                         <p class="mb-1 text-muted"><?php echo escape(TRUST_ADDRESS); ?></p>

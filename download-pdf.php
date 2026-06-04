@@ -89,8 +89,8 @@ function buildReceiptHtml($donation)
         }
 
         .logo {
-            height: 70px;
-            width: 70px;
+            height: 160px;
+            width: 160px;
         }
 
         .title {
@@ -127,7 +127,7 @@ function buildReceiptHtml($donation)
         }
 
         .logo-cell {
-            width: 80px;
+            width: 170px;
             vertical-align: top;
         }
 
