@@ -6,7 +6,6 @@ $nityaPages = [
     'nitya-seva-dashboard' => 'Dashboard',
     'nitya-seva-members' => 'Members',
     'nitya-seva-add-member' => 'Add Member',
-    'nitya-seva-record-payment' => 'Record Payment',
     'nitya-seva-pending-dues' => 'Pending Dues',
     'nitya-seva-reports' => 'Reports',
     'nitya-seva-sync' => 'Sync',

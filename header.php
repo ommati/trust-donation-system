@@ -43,7 +43,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? '', '.php');
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-dashboard'); ?>">Dashboard</a></li>
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-members'); ?>">Members</a></li>
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-add-member'); ?>">Add Member</a></li>
-                            <li><a class="dropdown-item" href="<?php echo url('nitya-seva-record-payment'); ?>">Record Payment</a></li>
+                            <li><a class="dropdown-item" href="<?php echo url('nitya-seva-members?tab=record'); ?>">Record Payment</a></li>
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-pending-dues'); ?>">Pending Dues</a></li>
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-reports'); ?>">Reports</a></li>
                             <li><a class="dropdown-item" href="<?php echo url('nitya-seva-sync'); ?>">Google Sheet Sync</a></li>

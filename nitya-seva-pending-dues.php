@@ -20,7 +20,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
             <h1 class="page-title">Pending Dues</h1>
             <p class="page-subtitle"><?php echo count($duesRows); ?> members with outstanding seva dues.</p>
         </div>
-        <a href="<?php echo url('nitya-seva-record-payment'); ?>" class="btn btn-primary">Record Payment</a>
+        <a href="<?php echo url('nitya-seva-members?tab=record'); ?>" class="btn btn-primary">Record Payment</a>
     </div>
 
     <div class="row g-3 g-xl-4">
@@ -78,7 +78,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                                     <td data-label="Due" class="text-end text-danger fw-bold"><?php echo formatCurrency($row['outstandingDue']); ?></td>
                                     <td data-label="Action" class="table-actions">
                                         <div class="action-group action-group-sm justify-content-end">
-                                            <a class="btn btn-sm btn-outline-primary" href="<?php echo url('nitya-seva-record-payment') . '?member_id=' . urlencode($member['member_id']); ?>">Pay</a>
+                                            <a class="btn btn-sm btn-outline-primary" href="<?php echo url('nitya-seva-members?tab=record&member_id=' . urlencode($member['member_id'])); ?>">Pay</a>
                                             <a class="btn btn-sm btn-outline-secondary" href="<?php echo url('nitya-seva-view-member') . '?id=' . urlencode($member['id']); ?>">View</a>
                                         </div>
                                     </td>

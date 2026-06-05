@@ -76,7 +76,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                         <?php foreach ($members as $member): ?>
                             <tr>
                                 <td><strong><?php echo escape($member['member_id']); ?></strong></td>
-                                <td><?php echo escape($member['name']); ?></td>
+                                <td><a href="<?php echo url('nitya-seva-view-member') . '?id=' . $member['id']; ?>" class="text-decoration-none"><?php echo escape($member['name']); ?></a></td>
                                 <td><?php echo escape($member['phone']); ?></td>
                                 <td><?php echo formatCurrency($member['monthly_seva_amount']); ?></td>
                                 <td><?php echo date('d M, Y', strtotime($member['seva_start_date'])); ?></td>
@@ -89,7 +89,6 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                                 </td>
                                 <td class="text-end">
                                     <a href="<?php echo url('nitya-seva-view-member') . '?id=' . $member['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
-                                    <a href="<?php echo url('nitya-seva-edit-member') . '?id=' . $member['id']; ?>" class="btn btn-sm btn-outline-secondary">Edit</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

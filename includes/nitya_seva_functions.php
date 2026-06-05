@@ -208,6 +208,75 @@ function getNityaSevaPaymentsForMember($pdo, $member_id)
     return $stmt->fetchAll();
 }
 
+function getNityaSevaMonthlyPaymentStatus($pdo, $member_id)
+{
+    // Get member info
+    $stmt = $pdo->prepare("SELECT id, seva_start_date, monthly_seva_amount FROM nitya_seva_members WHERE member_id = :member_id");
+    $stmt->execute([':member_id' => $member_id]);
+    $member = $stmt->fetch();
+
+    if (!$member) {
+        return [];
+    }
+
+    $monthlyDue = (float)$member['monthly_seva_amount'];
+
+    // Fetch payments in chronological order so we can allocate them to months
+    $stmt = $pdo->prepare("SELECT payment_date, amount_paid FROM nitya_seva_payments WHERE member_id = :member_id ORDER BY payment_date ASC, id ASC");
+    $stmt->execute([':member_id' => $member_id]);
+    $payments = $stmt->fetchAll();
+
+    // Build months list starting from seva_start_date up to current month
+    $startDate = new DateTime($member['seva_start_date']);
+    $startDate->modify('first day of this month');
+    $endDate = new DateTime('now');
+    $endDate->modify('first day of this month');
+
+    $months = [];
+    $current = clone $startDate;
+    while ($current <= $endDate) {
+        $months[] = [
+            'year' => (int)$current->format('Y'),
+            'month' => (int)$current->format('n'),
+            'monthName' => getMonthName((int)$current->format('n')),
+            'amount_due' => $monthlyDue,
+            'amount_paid' => 0.0,
+        ];
+        $current->modify('+1 month');
+    }
+
+    // Allocate payments to months chronologically. Extra payment is kept as advance credit.
+    foreach ($payments as $p) {
+        $remaining = (float)$p['amount_paid'];
+        // Fill existing months from the earliest
+        for ($i = 0; $remaining > 0 && $i < count($months); $i++) {
+            $need = $months[$i]['amount_due'] - $months[$i]['amount_paid'];
+            if ($need <= 0) continue;
+            $alloc = min($need, $remaining);
+            $months[$i]['amount_paid'] += $alloc;
+            $remaining -= $alloc;
+        }
+        // Any remaining payment is kept as advance credit but not shown as future months
+    }
+
+    // Build status array and determine paid flag
+    $status = [];
+    foreach ($months as $m) {
+        $status[] = [
+            'month' => $m['month'],
+            'year' => $m['year'],
+            'monthName' => $m['monthName'],
+            'amount_due' => $m['amount_due'],
+            'amount_paid' => $m['amount_paid'],
+            'isPaid' => $m['amount_paid'] >= $m['amount_due'],
+        ];
+    }
+
+    // Return in reverse order (most recent first)
+    return array_reverse($status);
+}
+
+
 function getMonthName($monthNum) {
     return DateTime::createFromFormat('!m', $monthNum)->format('F');
 }
