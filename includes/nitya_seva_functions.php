@@ -588,22 +588,9 @@ function syncNityaSevaMonthlyStatus($pdo)
     $members = getAllNityaSevaMembers($pdo, true);
     $sheet = nityaSevaSheetName('monthly_status');
     
-    // Clear existing data using batchClear
-    $clearResult = gs_sheets_request('POST', ':batchClear', 
-        ['ranges' => [$sheet . '!A:Z']], 'nityaseva');
-    if (!$clearResult['ok']) {
-        return ['ok' => false, 'message' => 'Failed to clear monthly status sheet: ' . $clearResult['message']];
-    }
+    // Build all rows (header + data)
+    $allRows = [$headerRow];
     
-    // Add header row
-    $appendResult = gs_sheets_request('POST', '/values/' . rawurlencode($sheet . '!A1') . ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 
-        ['values' => [$headerRow]], 'nityaseva');
-    if (!$appendResult['ok']) {
-        return ['ok' => false, 'message' => 'Failed to add header row: ' . $appendResult['message']];
-    }
-    
-    // Add data rows for each member
-    $rowsAdded = 0;
     foreach ($members as $member) {
         $row = [$member['member_id'], $member['name']];
         $sevaStartDate = new DateTime($member['seva_start_date']);
@@ -630,12 +617,16 @@ function syncNityaSevaMonthlyStatus($pdo)
             }
         }
         
-        $appendResult = gs_sheets_request('POST', '/values/' . rawurlencode($sheet . '!A2') . ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 
-            ['values' => [$row]], 'nityaseva');
-        if ($appendResult['ok']) {
-            $rowsAdded++;
-        }
+        $allRows[] = $row;
     }
     
-    return ['ok' => true, 'message' => "Monthly status sheet synced with $rowsAdded member records"];
+    // Update the sheet with all data at once
+    $path = '/values/' . rawurlencode($sheet . '!A1') . '?valueInputOption=RAW';
+    $updateResult = gs_sheets_request('PUT', $path, ['values' => $allRows], 'nityaseva');
+    
+    if (!$updateResult['ok']) {
+        return ['ok' => false, 'message' => 'Failed to sync monthly status sheet: ' . $updateResult['message']];
+    }
+    
+    return ['ok' => true, 'message' => "Monthly status sheet synced with " . count($allRows) - 1 . " member records"];
 }
