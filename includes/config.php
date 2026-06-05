@@ -79,6 +79,19 @@ if (!defined('REMEMBER_DAYS')) {
     define('REMEMBER_DAYS', 30);
 }
 
+$requestHost = strtolower($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+$requestHost = preg_replace('/:\d+$/', '', $requestHost);
+$requestHost = trim($requestHost, '[]');
+$localHosts = ['localhost', '127.0.0.1', '::1'];
+$isLocalServer = in_array($requestHost, $localHosts, true) || substr($requestHost, -10) === '.localhost';
+
+if (!defined('IS_LOCAL_SERVER')) {
+    define('IS_LOCAL_SERVER', $isLocalServer);
+}
+if (!defined('BYPASS_LOGIN_OTP_ON_LOCAL')) {
+    define('BYPASS_LOGIN_OTP_ON_LOCAL', IS_LOCAL_SERVER);
+}
+
 if (!defined('RECEIPT_PREFIX')) {
     define('RECEIPT_PREFIX', 'SRMNS-2026-');
 }

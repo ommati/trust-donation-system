@@ -138,10 +138,19 @@ function loginUser($username, $password, $remember = false)
     }
 
     clearPendingLogin();
+    if (shouldBypassLoginOtp()) {
+        return finalizeLogin($user, $remember);
+    }
+
     if (!sendLoginOtp((int)$user['id'], $remember)) {
         return ['ok' => false, 'message' => 'Unable to send the verification code. Please try again later.'];
     }
     return ['ok' => 'pending_otp', 'message' => 'A verification code has been sent to your verified email. Please enter it to complete login.'];
+}
+
+function shouldBypassLoginOtp()
+{
+    return defined('BYPASS_LOGIN_OTP_ON_LOCAL') && BYPASS_LOGIN_OTP_ON_LOCAL && defined('IS_LOCAL_SERVER') && IS_LOCAL_SERVER;
 }
 
 function clearPendingLogin()
