@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $loginError = 'Invalid request token. Please try again.';
     } else {
         $result = loginUser($_POST['username'] ?? '', $_POST['password'] ?? '', !empty($_POST['remember']));
+            error_log('LOGIN ATTEMPT: ' . json_encode(['username' => $_POST['username'] ?? '', 'result' => $result]));
         if ($result['ok'] === true) {
             redirect('nitya-seva-members');
         }
