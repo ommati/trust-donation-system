@@ -14,13 +14,35 @@ function gs_log($message)
     @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
 }
 
-function gs_resolve_credentials_path()
+function gs_get_credentials_path($type = 'generic')
 {
-    if (!defined('GSHEET_CREDENTIALS_PATH') || !GSHEET_CREDENTIALS_PATH) {
+    if ($type === 'nityaseva' && defined('GSHEET_CREDENTIALS_PATH_NITYASEVA') && GSHEET_CREDENTIALS_PATH_NITYASEVA) {
+        return GSHEET_CREDENTIALS_PATH_NITYASEVA;
+    }
+    if (defined('GSHEET_CREDENTIALS_PATH') && GSHEET_CREDENTIALS_PATH) {
+        return GSHEET_CREDENTIALS_PATH;
+    }
+    return false;
+}
+
+function gs_get_spreadsheet_id($type = 'generic')
+{
+    if ($type === 'nityaseva' && defined('GSHEET_SPREADSHEET_ID_NITYASEVA') && GSHEET_SPREADSHEET_ID_NITYASEVA) {
+        return GSHEET_SPREADSHEET_ID_NITYASEVA;
+    }
+    if (defined('GSHEET_SPREADSHEET_ID') && GSHEET_SPREADSHEET_ID) {
+        return GSHEET_SPREADSHEET_ID;
+    }
+    return false;
+}
+
+function gs_resolve_credentials_path($type = 'generic')
+{
+    $path = gs_get_credentials_path($type);
+    if (!$path) {
         return false;
     }
 
-    $path = GSHEET_CREDENTIALS_PATH;
     if (file_exists($path)) {
         return $path;
     }
@@ -46,55 +68,61 @@ function gs_resolve_credentials_path()
     return $path;
 }
 
-function gs_verify_config()
+function gs_verify_config($type = 'generic')
 {
-    if (!defined('GSHEET_SPREADSHEET_ID') || !GSHEET_SPREADSHEET_ID) {
-        gs_log('Google Sheets Spreadsheet ID is not configured.');
+    $spreadsheetId = gs_get_spreadsheet_id($type);
+    if (!$spreadsheetId) {
+        gs_log("Google Sheets Spreadsheet ID ($type) is not configured.");
         return false;
     }
-    if (!defined('GSHEET_CREDENTIALS_PATH') || !GSHEET_CREDENTIALS_PATH) {
-        gs_log('Google Sheets credentials path is not configured.');
-        return false;
-    }
-    if (!defined('GSHEET_SHEET_NAME') || !GSHEET_SHEET_NAME) {
-        gs_log('Google Sheets sheet name is not configured.');
+    
+    $credentialsPath = gs_get_credentials_path($type);
+    if (!$credentialsPath) {
+        gs_log("Google Sheets credentials path ($type) is not configured.");
         return false;
     }
 
-    $path = gs_resolve_credentials_path();
+    $path = gs_resolve_credentials_path($type);
     if (!file_exists($path)) {
-        gs_log('Service account JSON not found at ' . $path);
+        gs_log("Service account JSON ($type) not found at " . $path);
         $resolved = realpath($path);
         gs_log('Resolved path: ' . ($resolved !== false ? $resolved : '[not resolvable]'));
         return false;
     }
-    if ($path !== GSHEET_CREDENTIALS_PATH) {
-        define('GSHEET_CREDENTIALS_PATH_RESOLVED', $path);
+    
+    if ($path !== $credentialsPath) {
+        define('GSHEET_CREDENTIALS_PATH_RESOLVED_' . strtoupper($type), $path);
     }
     return true;
 }
 
-function gs_get_access_token()
+function gs_get_access_token($type = 'generic')
 {
-    if (!empty($_SESSION['gs_access_token']) && !empty($_SESSION['gs_access_token_expires']) && $_SESSION['gs_access_token_expires'] > time() + 30) {
-        return $_SESSION['gs_access_token'];
+    $sessionKey = 'gs_access_token_' . $type;
+    $sessionExpireKey = 'gs_access_token_expires_' . $type;
+    
+    if (!empty($_SESSION[$sessionKey]) && !empty($_SESSION[$sessionExpireKey]) && $_SESSION[$sessionExpireKey] > time() + 30) {
+        return $_SESSION[$sessionKey];
     }
 
-    if (!gs_verify_config()) {
+    if (!gs_verify_config($type)) {
         return false;
     }
 
-    $credentialsPath = defined('GSHEET_CREDENTIALS_PATH_RESOLVED') ? GSHEET_CREDENTIALS_PATH_RESOLVED : GSHEET_CREDENTIALS_PATH;
+    $credentialsPath = gs_get_credentials_path($type);
+    $resolvedKey = 'GSHEET_CREDENTIALS_PATH_RESOLVED_' . strtoupper($type);
+    $credentialsPath = defined($resolvedKey) ? constant($resolvedKey) : $credentialsPath;
+    
     $json = json_decode(file_get_contents($credentialsPath), true);
     if (!$json) {
-        gs_log('Invalid service account JSON at ' . $credentialsPath);
+        gs_log("Invalid service account JSON at $credentialsPath");
         return false;
     }
 
     $client_email = $json['client_email'] ?? null;
     $private_key = $json['private_key'] ?? null;
     if (!$client_email || !$private_key) {
-        gs_log('Service account JSON missing client_email or private_key');
+        gs_log("Service account JSON missing client_email or private_key at $credentialsPath");
         return false;
     }
 
@@ -117,7 +145,7 @@ function gs_get_access_token()
     $signature = '';
     $pkey = openssl_pkey_get_private($private_key);
     if ($pkey === false || !openssl_sign($assertion, $signature, $pkey, OPENSSL_ALGO_SHA256)) {
-        gs_log('Failed to sign JWT for service account');
+        gs_log("Failed to sign JWT for service account ($type)");
         return false;
     }
     openssl_pkey_free($pkey);
@@ -126,21 +154,21 @@ function gs_get_access_token()
     $post = http_build_query(['grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', 'assertion' => $assertion]);
     $response = gs_http_post($token_url, $post, ['Content-Type: application/x-www-form-urlencoded']);
     if ($response === false) {
-        gs_log('Failed to exchange JWT for access token');
+        gs_log("Failed to exchange JWT for access token ($type)");
         return false;
     }
     $data = json_decode($response, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        gs_log('Invalid JSON response from token endpoint: ' . json_last_error_msg() . ' response=' . $response);
+        gs_log("Invalid JSON response from token endpoint ($type): " . json_last_error_msg());
         return false;
     }
     if (empty($data['access_token'])) {
-        gs_log('Token response error: ' . $response);
+        gs_log("Token response error ($type): " . $response);
         return false;
     }
-    $_SESSION['gs_access_token'] = $data['access_token'];
-    $_SESSION['gs_access_token_expires'] = time() + intval($data['expires_in'] ?? 3600);
-    return $_SESSION['gs_access_token'];
+    $_SESSION[$sessionKey] = $data['access_token'];
+    $_SESSION[$sessionExpireKey] = time() + intval($data['expires_in'] ?? 3600);
+    return $_SESSION[$sessionKey];
 }
 
 function gs_http_post($url, $body, $headers = [])
@@ -180,13 +208,14 @@ function gs_http_post($url, $body, $headers = [])
     return $response;
 }
 
-function gs_sheets_request($method, $path, $body = null)
+function gs_sheets_request($method, $path, $body = null, $type = 'generic')
 {
-    $token = gs_get_access_token();
+    $token = gs_get_access_token($type);
     if (!$token) {
-        return ['ok' => false, 'message' => 'No access token'];
+        return ['ok' => false, 'message' => "No access token ($type)"];
     }
-    $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . rawurlencode(GSHEET_SPREADSHEET_ID) . $path;
+    $spreadsheetId = gs_get_spreadsheet_id($type);
+    $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . rawurlencode($spreadsheetId) . $path;
     $ch = curl_init($url);
     $headers = [
         'Authorization: Bearer ' . $token,

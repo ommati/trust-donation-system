@@ -406,18 +406,18 @@ function nityaSevaSheetName($type)
 function nityaSevaSheetAppendRow($sheet, $values)
 {
     $path = '/values/' . rawurlencode($sheet . '!A1') . ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS';
-    return gs_sheets_request('POST', $path, ['values' => [$values]]);
+    return gs_sheets_request('POST', $path, ['values' => [$values]], 'nityaseva');
 }
 
 function nityaSevaSheetUpdateRow($sheet, $rowNumber, $values)
 {
     $path = '/values/' . rawurlencode($sheet . '!A' . $rowNumber) . '?valueInputOption=RAW';
-    return gs_sheets_request('PUT', $path, ['values' => [$values]]);
+    return gs_sheets_request('PUT', $path, ['values' => [$values]], 'nityaseva');
 }
 
 function nityaSevaSheetFindRow($sheet, $key)
 {
-    $res = gs_sheets_request('GET', '/values/' . rawurlencode($sheet . '!A2:A'));
+    $res = gs_sheets_request('GET', '/values/' . rawurlencode($sheet . '!A2:A'), null, 'nityaseva');
     if (!$res['ok']) {
         return ['ok' => false, 'message' => $res['message'] ?? 'Failed to read sheet'];
     }
@@ -432,8 +432,8 @@ function nityaSevaSheetFindRow($sheet, $key)
 function syncNityaSevaMember($member)
 {
     require_once __DIR__ . '/google_sheets.php';
-    if (!gs_verify_config()) {
-        return ['ok' => false, 'message' => 'Google Sheets is not configured.'];
+    if (!gs_verify_config('nityaseva')) {
+        return ['ok' => false, 'message' => 'Google Sheets (Nitya Seva) is not configured.'];
     }
     if (!function_exists('curl_init')) {
         return ['ok' => false, 'message' => 'The PHP cURL extension is required for Google Sheets sync.'];
@@ -463,8 +463,8 @@ function syncNityaSevaMember($member)
 function syncNityaSevaPayment($payment)
 {
     require_once __DIR__ . '/google_sheets.php';
-    if (!gs_verify_config()) {
-        return ['ok' => false, 'message' => 'Google Sheets is not configured.'];
+    if (!gs_verify_config('nityaseva')) {
+        return ['ok' => false, 'message' => 'Google Sheets (Nitya Seva) is not configured.'];
     }
     if (!function_exists('curl_init')) {
         return ['ok' => false, 'message' => 'The PHP cURL extension is required for Google Sheets sync.'];
