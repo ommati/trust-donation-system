@@ -465,13 +465,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                                                 <td class="text-end"><?php echo formatCurrency($payment['amount_paid']); ?></td>
                                                 <td class="text-end">
                                                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPaymentModal" onclick="populateEditPaymentForm(<?php echo $payment['id']; ?>, '<?php echo $payment['payment_date']; ?>', <?php echo $payment['amount_paid']; ?>, '<?php echo escape($payment['payment_mode']); ?>', '<?php echo escape(addslashes($payment['remarks'])); ?>')">Edit</button>
-                                                    <form method="post" style="display:inline;" onsubmit="return deletePaymentWithVerification(this, <?php echo $payment['id']; ?>);">
-                                                        <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
-                                                        <input type="hidden" name="action" value="delete_payment">
-                                                        <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
-                                                        <input type="hidden" name="verification_code" id="delete_verification_code_<?php echo $payment['id']; ?>" value="">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePaymentWithVerification(<?php echo $payment['id']; ?>, '<?php echo escape(getCsrfToken()); ?>')">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -589,13 +583,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                                                 <td class="text-end"><?php echo formatCurrency($payment['amount_paid']); ?></td>
                                                 <td class="text-end">
                                                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPaymentModal" onclick="populateEditPaymentForm(<?php echo $payment['id']; ?>, '<?php echo $payment['payment_date']; ?>', <?php echo $payment['amount_paid']; ?>, '<?php echo escape($payment['payment_mode']); ?>', '<?php echo escape(addslashes($payment['remarks'])); ?>')">Edit</button>
-                                                    <form method="post" style="display:inline;" onsubmit="return deletePaymentWithVerification(this, <?php echo $payment['id']; ?>);">
-                                                        <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
-                                                        <input type="hidden" name="action" value="delete_payment">
-                                                        <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
-                                                        <input type="hidden" name="verification_code" id="delete_verification_code_<?php echo $payment['id']; ?>" value="">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePaymentWithVerification(<?php echo $payment['id']; ?>, '<?php echo escape(getCsrfToken()); ?>')">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -631,7 +619,8 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
                                                     <span class="badge bg-danger">Due</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td class="text-end"><?php echo formatCurrency($statusRow['amount_due']); ?></td>
+                                            <?php $remaining = $statusRow['amount_due'] - ($statusRow['amount_paid'] ?? 0); ?>
+                                            <td class="text-end"><?php echo $remaining > 0 ? formatCurrency($remaining) : formatCurrency(0); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -703,20 +692,29 @@ function populateEditPaymentForm(paymentId, paymentDate, amountPaid, paymentMode
     document.getElementById('edit_verification_code').value = ''; // Clear the verification code field
 }
 
-function deletePaymentWithVerification(form, paymentId) {
+function deletePaymentWithVerification(paymentId, csrfToken) {
     const code = prompt('Enter 4-digit verification code to confirm deletion:');
     if (code === null) {
-        return false; // User cancelled
+        return; // User cancelled
     }
     
     if (code !== '4039') {
         alert('Invalid verification code. Deletion cancelled.');
-        return false;
+        return;
     }
     
-    document.getElementById('delete_verification_code_' + paymentId).value = code;
+    // Create and submit form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.location.href;
+    form.innerHTML = `
+        <input type="hidden" name="${document.querySelector('input[name*="CSRF"]')?.name || 'csrf_token'}" value="${csrfToken}">
+        <input type="hidden" name="action" value="delete_payment">
+        <input type="hidden" name="payment_id" value="${paymentId}">
+        <input type="hidden" name="verification_code" value="${code}">
+    `;
+    document.body.appendChild(form);
     form.submit();
-    return false;
 }
 </script>
 
