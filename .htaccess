@@ -1,5 +1,23 @@
-# --- DIAGNOSTIC .HTACCESS ---
-# This file is intended to reset URL handling and diagnose "Not Found" errors.
+# --- Clean URLs Configuration ---
+# Remove .php extension from URLs
 
-# Turn off the URL rewriting engine completely.
-RewriteEngine Off
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /admin-panel/
+    
+    # Don't rewrite existing files or directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Rewrite clean URLs to .php files
+    RewriteRule ^(.+)$ $1.php [L]
+</IfModule>
+
+# --- Security ---
+# Deny access to sensitive directories
+# Deny access to sensitive files
+# Note: <Directory> blocks are not allowed in per-directory .htaccess files
+# (they cause 500 errors). Use includes/.htaccess to protect folders.
+<FilesMatch "\.(env|sql|json|lock)$">
+    Require all denied
+</FilesMatch>

@@ -36,11 +36,7 @@ function url($path = '')
     }
 
     $path = trim($path, '/');
-    if ($path !== '' && !preg_match('/\.[a-z0-9]+$/i', $path)) {
-        // This line ensures all links correctly point to .php files.
-        // It is required for the site to work without URL rewriting.
-        $path .= '.php'; // DO NOT REMOVE OR COMMENT OUT THIS LINE.
-    }
+    // Clean URLs: don't add .php extension, let .htaccess handle rewriting
 
     return $base . '/' . $path . $suffix;
 }
