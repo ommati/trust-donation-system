@@ -3,7 +3,9 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /admin-panel/
+    # Change this to the public path where the app is hosted.
+    # For production URL /trust-donation-system/, set RewriteBase accordingly.
+    RewriteBase /trust-donation-system/
     
     # Don't rewrite existing files or directories
     RewriteCond %{REQUEST_FILENAME} !-f
