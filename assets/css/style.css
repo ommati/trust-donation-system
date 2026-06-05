@@ -754,6 +754,29 @@ footer .text-muted {
     color: rgba(255, 247, 240, 0.68) !important;
 }
 
+body.nitya-seva-portal {
+    --cream: #f5fbf8;
+    --ink: #10231d;
+    --gold: #2f7d66;
+    --brown: #12382f;
+    --gold-soft: rgba(47, 125, 102, 0.12);
+    --gold-border: rgba(47, 125, 102, 0.28);
+    --brown-soft: rgba(18, 56, 47, 0.08);
+    --brown-muted: rgba(18, 56, 47, 0.68);
+}
+
+.nitya-navbar .navbar-brand-text::after {
+    content: "Monthly Seva";
+    display: block;
+    color: rgba(245, 251, 248, 0.72);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
 @media (max-width: 767.98px) {
     .navbar-collapse {
         padding-top: 0.75rem;

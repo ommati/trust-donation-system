@@ -44,6 +44,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="action-group">
             <a href="<?php echo url('add-donation'); ?>" class="btn btn-success">Add Donation</a>
             <a href="<?php echo url('donations'); ?>" class="btn btn-outline-primary">View Donations</a>
+            <a href="<?php echo url('nitya-seva-dashboard'); ?>" class="btn btn-outline-secondary" target="_blank" rel="noopener">Open Nitya Seva</a>
             <form method="post">
                 <div class="d-grid">
                     <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">

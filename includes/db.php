@@ -13,5 +13,8 @@ try {
     http_response_code(500);
     echo '<h1>Database Connection Error</h1>';
     echo '<p>Please verify your database settings in includes/config.php.</p>';
+    if (defined('IS_LOCAL_SERVER') && IS_LOCAL_SERVER) {
+        echo '<p><strong>Local error:</strong> ' . htmlspecialchars($exception->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>';
+    }
     exit;
 }

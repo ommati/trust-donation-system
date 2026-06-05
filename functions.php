@@ -279,33 +279,6 @@ function ensureNityaSevaSchema()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
         );
 
-        $memberColumns = [
-            "ALTER TABLE nitya_seva_members ADD COLUMN sync_status ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending'",
-            "ALTER TABLE nitya_seva_members ADD COLUMN last_sync_at DATETIME NULL",
-            "ALTER TABLE nitya_seva_members ADD COLUMN sync_error TEXT NULL",
-        ];
-        foreach ($memberColumns as $sql) {
-            try {
-                $pdo->exec($sql);
-            } catch (PDOException $e) {
-                // ignore existing columns
-            }
-        }
-
-        $paymentColumns = [
-            "ALTER TABLE nitya_seva_payments ADD COLUMN reference_no VARCHAR(100) DEFAULT NULL",
-            "ALTER TABLE nitya_seva_payments ADD COLUMN sync_status ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending'",
-            "ALTER TABLE nitya_seva_payments ADD COLUMN last_sync_at DATETIME NULL",
-            "ALTER TABLE nitya_seva_payments ADD COLUMN sync_error TEXT NULL",
-        ];
-        foreach ($paymentColumns as $sql) {
-            try {
-                $pdo->exec($sql);
-            } catch (PDOException $e) {
-                // ignore existing columns
-            }
-        }
-
     } catch (Exception $e) {
         // ignore schema creation failures
     }
