@@ -588,8 +588,9 @@ function syncNityaSevaMonthlyStatus($pdo)
     $members = getAllNityaSevaMembers($pdo, true);
     $sheet = nityaSevaSheetName('monthly_status');
     
-    // Clear existing data and add header
-    $clearResult = gs_sheets_request('DELETE', '/values/' . rawurlencode($sheet . '!A:Z'), null, 'nityaseva');
+    // Clear existing data using batchClear
+    $clearResult = gs_sheets_request('POST', ':batchClear', 
+        ['ranges' => [$sheet . '!A:Z']], 'nityaseva');
     if (!$clearResult['ok']) {
         return ['ok' => false, 'message' => 'Failed to clear monthly status sheet: ' . $clearResult['message']];
     }
