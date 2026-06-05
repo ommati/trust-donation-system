@@ -7,12 +7,15 @@ ensureNityaSevaSchema();
 
 $pageTitle = 'Nitya Seva Sync';
 $notice = '';
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !empty($_POST['retry_syncs'])) {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!validateCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
         $notice = 'Invalid request token.';
-    } else {
+    } elseif (!empty($_POST['retry_syncs'])) {
         $result = retryPendingNityaSevaSyncs($pdo, 200);
         $notice = 'Sync retry completed. Processed ' . (int)$result['processed'] . ', succeeded ' . (int)$result['succeeded'] . ', failed ' . (int)$result['failed'] . '.';
+    } elseif (!empty($_POST['sync_monthly_status'])) {
+        $result = syncNityaSevaMonthlyStatus($pdo);
+        $notice = $result['ok'] ? $result['message'] : 'Error: ' . $result['message'];
     }
 }
 
@@ -20,6 +23,7 @@ $stats = getNityaSevaSyncStats($pdo);
 $pendingRows = getRecentNityaSevaSyncRows($pdo);
 $membersSheet = nityaSevaSheetName('members');
 $paymentsSheet = nityaSevaSheetName('payments');
+$monthlyStatusSheet = nityaSevaSheetName('monthly_status');
 
 require_once __DIR__ . '/includes/nitya_seva_header.php';
 ?>
@@ -32,6 +36,7 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
         <form method="post">
             <input type="hidden" name="<?php echo CSRF_TOKEN_NAME; ?>" value="<?php echo escape(getCsrfToken()); ?>">
             <button type="submit" name="retry_syncs" value="1" class="btn btn-primary">Retry Pending Syncs</button>
+            <button type="submit" name="sync_monthly_status" value="1" class="btn btn-success">Sync Monthly Status</button>
         </form>
     </div>
 
@@ -48,6 +53,9 @@ require_once __DIR__ . '/includes/nitya_seva_header.php';
         </div>
         <div class="col-12 col-md-4">
             <div class="card stat-card h-100"><div class="card-body"><h2 class="card-title">Synced Records</h2><p class="display-6 mb-1"><?php echo escape($stats['members']['synced'] + $stats['payments']['synced']); ?></p><small class="text-muted">Members and payments</small></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card stat-card h-100"><div class="card-body"><h2 class="card-title">Monthly Status Sheet</h2><p class="display-6 mb-1" style="font-size: 0.9rem;">Auto-synced</p><small class="text-muted">Sheet: <?php echo escape($monthlyStatusSheet); ?></small></div></div>
         </div>
     </div>
 

@@ -400,7 +400,16 @@ function nityaSevaSheetName($type)
     if ($type === 'members' && defined('GSHEET_NITYA_MEMBERS_SHEET_NAME')) {
         return GSHEET_NITYA_MEMBERS_SHEET_NAME;
     }
-    return $type === 'payments' ? 'Nitya Seva Payments' : 'Nitya Seva Members';
+    if ($type === 'monthly_status' && defined('GSHEET_NITYA_MONTHLY_STATUS_SHEET_NAME')) {
+        return GSHEET_NITYA_MONTHLY_STATUS_SHEET_NAME;
+    }
+    if ($type === 'payments') {
+        return 'Nitya Seva Payments';
+    }
+    if ($type === 'monthly_status') {
+        return 'Nitya Seva Monthly Status';
+    }
+    return 'Nitya Seva Members';
 }
 
 function nityaSevaSheetAppendRow($sheet, $values)
@@ -541,4 +550,91 @@ function retryPendingNityaSevaSyncs($pdo, $limit = 100)
     }
 
     return $results;
+}
+
+function syncNityaSevaMonthlyStatus($pdo)
+{
+    require_once __DIR__ . '/google_sheets.php';
+    
+    if (!gs_verify_config('nityaseva')) {
+        return ['ok' => false, 'message' => 'Google Sheets (Nitya Seva) is not configured.'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['ok' => false, 'message' => 'The PHP cURL extension is required for Google Sheets sync.'];
+    }
+
+    // Generate month range from Jan 2026 to current month
+    $startDate = new DateTime('2026-01-01');
+    $endDate = new DateTime('now');
+    $endDate->modify('last day of this month');
+    
+    $months = [];
+    $monthNames = [];
+    $current = clone $startDate;
+    
+    while ($current <= $endDate) {
+        $monthNum = (int)$current->format('n');
+        $year = (int)$current->format('Y');
+        $months[] = ['month' => $monthNum, 'year' => $year];
+        $monthNames[] = getMonthName($monthNum) . ' ' . $year;
+        $current->modify('+1 month');
+    }
+    
+    // Build header row
+    $headerRow = ['Member ID', 'Name'];
+    $headerRow = array_merge($headerRow, $monthNames);
+    
+    // Get all active members
+    $members = getAllNityaSevaMembers($pdo, true);
+    $sheet = nityaSevaSheetName('monthly_status');
+    
+    // Clear existing data and add header
+    $clearResult = gs_sheets_request('DELETE', '/values/' . rawurlencode($sheet . '!A:Z'), null, 'nityaseva');
+    if (!$clearResult['ok']) {
+        return ['ok' => false, 'message' => 'Failed to clear monthly status sheet: ' . $clearResult['message']];
+    }
+    
+    // Add header row
+    $appendResult = gs_sheets_request('POST', '/values/' . rawurlencode($sheet . '!A1') . ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 
+        ['values' => [$headerRow]], 'nityaseva');
+    if (!$appendResult['ok']) {
+        return ['ok' => false, 'message' => 'Failed to add header row: ' . $appendResult['message']];
+    }
+    
+    // Add data rows for each member
+    $rowsAdded = 0;
+    foreach ($members as $member) {
+        $row = [$member['member_id'], $member['name']];
+        $sevaStartDate = new DateTime($member['seva_start_date']);
+        $sevaStartMonth = (int)$sevaStartDate->format('n');
+        $sevaStartYear = (int)$sevaStartDate->format('Y');
+        
+        // Get member's payment status for each month
+        $monthlyStatus = getNityaSevaMonthlyPaymentStatus($pdo, $member['member_id']);
+        $statusMap = [];
+        foreach ($monthlyStatus as $status) {
+            $key = $status['year'] . '-' . str_pad($status['month'], 2, '0', STR_PAD_LEFT);
+            $statusMap[$key] = $status['isPaid'] ? 'Paid' : 'Due';
+        }
+        
+        // Add status for each month
+        foreach ($months as $m) {
+            $key = $m['year'] . '-' . str_pad($m['month'], 2, '0', STR_PAD_LEFT);
+            
+            // Check if month is before seva start date
+            if ($m['year'] < $sevaStartYear || ($m['year'] === $sevaStartYear && $m['month'] < $sevaStartMonth)) {
+                $row[] = 'NIL';
+            } else {
+                $row[] = $statusMap[$key] ?? 'Due';
+            }
+        }
+        
+        $appendResult = gs_sheets_request('POST', '/values/' . rawurlencode($sheet . '!A2') . ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 
+            ['values' => [$row]], 'nityaseva');
+        if ($appendResult['ok']) {
+            $rowsAdded++;
+        }
+    }
+    
+    return ['ok' => true, 'message' => "Monthly status sheet synced with $rowsAdded member records"];
 }
