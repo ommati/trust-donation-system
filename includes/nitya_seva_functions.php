@@ -157,13 +157,17 @@ function getNityaSevaMembers($pdo, $filters = [], $page = 1, $perPage = 20)
     $params = [];
 
     if (!empty($filters['search'])) {
-        $where[] = "(member_id LIKE :search OR name LIKE :search OR phone LIKE :search OR gotra LIKE :search)";
-        $params[':search'] = '%' . $filters['search'] . '%';
+        $searchValue = '%' . $filters['search'] . '%';
+        $where[] = "(member_id LIKE ? OR name LIKE ? OR phone LIKE ? OR gotra LIKE ?)";
+        $params[] = $searchValue;
+        $params[] = $searchValue;
+        $params[] = $searchValue;
+        $params[] = $searchValue;
     }
 
     if (!empty($filters['status']) && in_array($filters['status'], ['active', 'inactive'])) {
-        $where[] = "status = :status";
-        $params[':status'] = $filters['status'];
+        $where[] = "status = ?";
+        $params[] = $filters['status'];
     }
 
     if (!empty($where)) {
@@ -173,17 +177,10 @@ function getNityaSevaMembers($pdo, $filters = [], $page = 1, $perPage = 20)
     $sql .= " ORDER BY id DESC";
     
     $offset = ($page - 1) * $perPage;
-    $sql .= " LIMIT :limit OFFSET :offset";
+    $sql .= " LIMIT " . intval($perPage) . " OFFSET " . intval($offset);
 
     $stmt = $pdo->prepare($sql);
-    
-    foreach ($params as $key => $val) {
-        $stmt->bindValue($key, $val);
-    }
-    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
-    $stmt->execute();
+    $stmt->execute($params);
     $members = $stmt->fetchAll();
 
     // Get total count for pagination
