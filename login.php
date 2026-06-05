@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
 if (isLoggedIn()) {
-    redirect('dashboard');
+    redirect('nitya-seva-members');
 }
 
 $loginError = '';
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = loginUser($_POST['username'] ?? '', $_POST['password'] ?? '', !empty($_POST['remember']));
         if ($result['ok'] === true) {
-            redirect('dashboard');
+            redirect('nitya-seva-members');
         }
         if ($result['ok'] === 'pending_otp') {
             $_SESSION['login_notice'] = $result['message'];
