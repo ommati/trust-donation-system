@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = loginUser($_POST['username'] ?? '', $_POST['password'] ?? '', !empty($_POST['remember']));
             error_log('LOGIN ATTEMPT: ' . json_encode(['username' => $_POST['username'] ?? '', 'result' => $result]));
                 if ($result['ok'] === true) {
-                    // Use absolute path to avoid basePath/rewrite differences on live server
-                    redirect('/trust-donation-system/nitya-seva-members');
+                    // Use app route so basePath/rewrite are handled correctly on live server
+                    redirect('nitya-seva-members');
                 }
         if ($result['ok'] === 'pending_otp') {
             $_SESSION['login_notice'] = $result['message'];
